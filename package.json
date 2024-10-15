@@ -3,13 +3,15 @@
   "description": "CLI for AnyFlow operations",
   "version": "1.0.0",
   "main": "dist/cli.js",
+  "type": "module",
   "bin": {
     "anyflow": "./dist/cli.js"
   },
   "scripts": {
     "test": "echo \"Error: no test specified\" && exit 1",
     "build": "tsc",
-    "start": "ts-node src/cli.ts"
+    "start": "node -r dotenv/config dist/cli.js --help",
+    "anyflow": "node -r dotenv/config dist/cli.js"
   },
   "keywords": [],
   "author": "",
@@ -17,6 +19,7 @@
   "dependencies": {
     "axios": "^1.7.7",
     "commander": "^12.1.0",
+    "dotenv": "^16.4.5",
     "figlet": "^1.8.0",
     "keytar": "^7.9.0",
     "open": "^10.1.0",
@@ -26,6 +29,7 @@
     "@types/figlet": "^1.7.0",
     "@types/node": "^22.5.3",
     "@types/openurl": "^1.0.3",
+    "electron": "^32.2.0",
     "ts-node": "^10.9.2",
     "typescript": "^5.5.4"
   }
