@@ -10,7 +10,7 @@
   "scripts": {
     "test": "echo \"Error: no test specified\" && exit 1",
     "build": "tsc",
-    "start": "node -r dotenv/config dist/cli.js --help",
+    "start": "node -r dotenv/config dist/cli.js help",
     "anyflow": "node -r dotenv/config dist/cli.js"
   },
   "keywords": [],
@@ -23,14 +23,14 @@
     "figlet": "^1.8.0",
     "keytar": "^7.9.0",
     "open": "^10.1.0",
-    "openurl": "^1.1.1"
+    "openurl": "^1.1.1",
+    "pkg-dir": "^8.0.0"
   },
   "devDependencies": {
     "@types/figlet": "^1.7.0",
     "@types/node": "^22.5.3",
     "@types/openurl": "^1.0.3",
-    "electron": "^32.2.0",
     "ts-node": "^10.9.2",
-    "typescript": "^5.5.4"
+    "typescript": "^5.4.5"
   }
 }

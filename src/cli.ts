@@ -1,54 +1,27 @@
 #!/usr/bin/env node
 
-import fs from 'fs/promises';
-import path from 'path';
-import crypto from 'crypto';
-import dotenv from 'dotenv';
+import figlet from 'figlet';
 import { Command } from "commander";
-import { authenticate, checkAuth } from "./commands/auth.js";
+import { init } from "./commands/init.js";
+import { authenticate } from "./commands/auth/auth.js";
 import { install } from "./commands/install.js";
 import { deploy } from "./commands/deploy.js";
-import figlet from 'figlet';
-
-async function ensureEnvFile() {
-  const envPath = path.resolve(process.cwd(), '.env');
-  try {
-    await fs.access(envPath);
-  } catch {
-    const key = crypto.randomBytes(32).toString('hex');
-    await fs.writeFile(envPath, `ENCRYPTION_KEY=${key}`);
-    console.log('Created new .env file with encryption key.');
-  }
-}
-
-async function init() {
-  await ensureEnvFile();
-  console.log("Initialized .env file with encryption key.");
-}
+import { checkAuth } from "./commands/auth/check-auth.js";
 
 async function main() {
   console.log("Starting AnyFlow CLI...");
-  
-  await ensureEnvFile();
-
-  dotenv.config({ path: path.resolve(process.cwd(), '.env') });
-
-  if (!process.env.ENCRYPTION_KEY) {
-    console.error("ENCRYPTION_KEY is not set in the environment variables.");
-    process.exit(1);
-  }
 
   const program = new Command();
 
   console.log(figlet.textSync("Anyflow CLI"));
-
+try {
   program
     .name("anyflow")
-    .description("CLI for AnyFlow operations")
+    .description("CLI for AnyFlow operations, command init to initialize the project")
     .version("1.0.0");
 
   program
-    .name("anyflow")
+    .command("init")
     .description("Initialize the AnyFlow CLI")
     .action(init);
 
@@ -72,7 +45,11 @@ async function main() {
     .description("Check authentication status")
     .action(checkAuth);
 
-  program.parse(process.argv);
+  await program.parseAsync(process.argv);
+} catch (error) {
+  console.error(error);
+}
+  process.exit(0);
 }
 
 main().catch(console.error);
