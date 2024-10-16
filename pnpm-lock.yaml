@@ -14,6 +14,9 @@ importers:
       commander:
         specifier: ^12.1.0
         version: 12.1.0
+      dotenv:
+        specifier: ^16.4.5
+        version: 16.4.5
       figlet:
         specifier: ^1.8.0
         version: 1.8.0
@@ -26,6 +29,9 @@ importers:
       openurl:
         specifier: ^1.1.1
         version: 1.1.1
+      pkg-dir:
+        specifier: ^8.0.0
+        version: 8.0.0
     devDependencies:
       '@types/figlet':
         specifier: ^1.7.0
@@ -38,10 +44,10 @@ importers:
         version: 1.0.3
       ts-node:
         specifier: ^10.9.2
-        version: 10.9.2(@types/node@22.5.3)(typescript@5.5.4)
+        version: 10.9.2(@types/node@22.5.3)(typescript@5.4.5)
       typescript:
-        specifier: ^5.5.4
-        version: 5.5.4
+        specifier: ^5.4.5
+        version: 5.4.5
 
 packages:
 
@@ -157,6 +163,10 @@ packages:
     resolution: {integrity: sha512-58lmxKSA4BNyLz+HHMUzlOEpg09FV+ev6ZMe3vJihgdxzgcwZ8VoEEPmALCZG9LmqfVoNMMKpttIYTVG6uDY7A==}
     engines: {node: '>=0.3.1'}
 
+  dotenv@16.4.5:
+    resolution: {integrity: sha512-ZmdL2rui+eB2YwhsWzjInR8LldtZHGDoQ1ugH85ppHKwpUHL7j7rN0Ti9NCnGiQbhaZ11FpR+7ao1dNsmduNUg==}
+    engines: {node: '>=12'}
+
   end-of-stream@1.4.4:
     resolution: {integrity: sha512-+uw1inIHVPQoaVuHzRyXd21icM+cnt4CzD5rW+NC1wjOUSTOs+Te7FOv7AhN7vS9x/oIyhLP5PR1H+phQAHu5Q==}
 
@@ -168,6 +178,10 @@ packages:
     resolution: {integrity: sha512-chzvGjd+Sp7KUvPHZv6EXV5Ir3Q7kYNpCr4aHrRW79qFtTefmQZNny+W1pW9kf5zeE6dikku2W50W/wAH2xWgw==}
     engines: {node: '>= 0.4.0'}
     hasBin: true
+
+  find-up-simple@1.0.0:
+    resolution: {integrity: sha512-q7Us7kcjj2VMePAa02hDAF6d+MzsdsAWEwYyOpwUtlerRBkOEPBCRZrAV4XfcSN8fHAgaD0hP7miwoay6DCprw==}
+    engines: {node: '>=18'}
 
   follow-redirects@1.15.8:
     resolution: {integrity: sha512-xgrmBhBToVKay1q2Tao5LI26B83UhrB/vM1avwVSDzt8rx3rO6AizBAaF46EgksTVr+rFTQaqZZ9MVBfUe4nig==}
@@ -255,6 +269,10 @@ packages:
   openurl@1.1.1:
     resolution: {integrity: sha512-d/gTkTb1i1GKz5k3XE3XFV/PxQ1k45zDqGP2OA7YhgsaLoqm6qRvARAZOFer1fcXritWlGBRCu/UgeS4HAnXAA==}
 
+  pkg-dir@8.0.0:
+    resolution: {integrity: sha512-4peoBq4Wks0riS0z8741NVv+/8IiTvqnZAr8QGgtdifrtpdXbNw/FxRS1l6NFqm4EMzuS0EDqNNx4XGaz8cuyQ==}
+    engines: {node: '>=18'}
+
   prebuild-install@7.1.2:
     resolution: {integrity: sha512-UnNke3IQb6sgarcZIDU3gbMeTp/9SSU1DAIkil7PrqG1vZlBtY5msYccSKSHDqa3hNg436IXK+SNImReuA1wEQ==}
     engines: {node: '>=10'}
@@ -323,8 +341,8 @@ packages:
   tunnel-agent@0.6.0:
     resolution: {integrity: sha512-McnNiV1l8RYeY8tBgEpuodCC1mLUdbSN+CYBL7kJsJNInOP8UjDDEwdk6Mw60vdLLrr5NHKZhMAOSrR2NZuQ+w==}
 
-  typescript@5.5.4:
-    resolution: {integrity: sha512-Mtq29sKDAEYP7aljRgtPOpTvOfbwRWlS6dPRzwjdE+C0R4brX/GUyhHSecbHMFLNBLcJIPt9nl9yG5TZ1weH+Q==}
+  typescript@5.4.5:
+    resolution: {integrity: sha512-vcI4UpRgg81oIRUFwR0WSIHKt11nJ7SAVlYNIu+QpqeyXP+gpQJy/Z4+F0aGxSE4MqwjyXvW/TzgkLAx2AGHwQ==}
     engines: {node: '>=14.17'}
     hasBin: true
 
@@ -443,6 +461,8 @@ snapshots:
 
   diff@4.0.2: {}
 
+  dotenv@16.4.5: {}
+
   end-of-stream@1.4.4:
     dependencies:
       once: 1.4.0
@@ -450,6 +470,8 @@ snapshots:
   expand-template@2.0.3: {}
 
   figlet@1.8.0: {}
+
+  find-up-simple@1.0.0: {}
 
   follow-redirects@1.15.8: {}
 
@@ -518,6 +540,10 @@ snapshots:
       is-wsl: 3.1.0
 
   openurl@1.1.1: {}
+
+  pkg-dir@8.0.0:
+    dependencies:
+      find-up-simple: 1.0.0
 
   prebuild-install@7.1.2:
     dependencies:
@@ -589,7 +615,7 @@ snapshots:
       inherits: 2.0.4
       readable-stream: 3.6.2
 
-  ts-node@10.9.2(@types/node@22.5.3)(typescript@5.5.4):
+  ts-node@10.9.2(@types/node@22.5.3)(typescript@5.4.5):
     dependencies:
       '@cspotcode/source-map-support': 0.8.1
       '@tsconfig/node10': 1.0.11
@@ -603,7 +629,7 @@ snapshots:
       create-require: 1.1.1
       diff: 4.0.2
       make-error: 1.3.6
-      typescript: 5.5.4
+      typescript: 5.4.5
       v8-compile-cache-lib: 3.0.1
       yn: 3.1.1
 
@@ -611,7 +637,7 @@ snapshots:
     dependencies:
       safe-buffer: 5.2.1
 
-  typescript@5.5.4: {}
+  typescript@5.4.5: {}
 
   undici-types@6.19.8: {}
 

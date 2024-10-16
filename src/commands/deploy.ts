@@ -1,17 +1,16 @@
 import axios from "axios";
-import * as keytar from "keytar";
-
-const SERVICE_NAME = "AnyFlowCLI";
-const ACCOUNT_NAME = "apiToken";
+import { getToken } from "./auth/store-token/store.js";
 
 export async function deploy() {
-  const token = await keytar.getPassword(SERVICE_NAME, ACCOUNT_NAME);
+  let token = await getToken();
+
   if (!token) {
     console.log('You need to authenticate first. Run "anyflow auth".');
     return;
   }
 
   console.log("Deploying with authenticated backend call...");
+  
   try {
     // Replace with actual API URL
     const response = await axios.post(
