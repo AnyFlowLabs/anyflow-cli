@@ -11,18 +11,18 @@ export const ACCOUNT_NAME = "apiToken";
 
 // Store the token securely
 export async function storeToken(token: string) {
+  // Verify the token by getting user info
+  await getUser(token);  
+  
   try {
-    // Verify the token by getting user info
-    await getUser(token);
-
     // Attempt to store the token using the system keychain
     await keytar.setPassword(SERVICE_NAME, ACCOUNT_NAME, token);
 
     console.log("Token and user info stored securely using system keychain.");
   } catch (error) {
-    console.error("Error storing token:", error);
+    console.error("Error storing token in system keychain.");
     console.warn("Falling back to file-based storage.");
-    
+
     // If keychain storage fails, encrypt and store the token in a file
     const encryptedToken = encrypt(token);
 
@@ -51,7 +51,11 @@ export async function storeTokenInFile(encryptedToken: string) {
 // Retrieve the stored token
 export async function getToken(): Promise<string | null> {
   // First, try to get the token from the system keychain
-  const token = await keytar.getPassword(SERVICE_NAME, ACCOUNT_NAME);
+  const token = await keytar.getPassword(SERVICE_NAME, ACCOUNT_NAME).catch(() => {
+    console.log("Token not found in keychain, trying file...");
+
+    return
+  })
 
   if (token) {
     return token;

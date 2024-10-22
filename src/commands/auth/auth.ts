@@ -1,5 +1,5 @@
 import dotenv from 'dotenv';
-import open from "open";
+import open from 'open';
 import readline from 'readline/promises';
 import { storeToken } from './store-token/store.js';
 
@@ -33,14 +33,15 @@ export async function authenticate() {
   try {
     // Prompt user for API token
     const token = await rl.question("Please paste your API token here: ");
+
     if (token && token.trim()) {
       await storeToken(token.trim());
     } else {
       console.log("Invalid token. Please provide a non-empty token.");
       process.exit(1);
     }
-  } catch (error) {
-    console.error("Error storing token:", error);
+  } catch (error: any) {
+    console.error("Error storing token");
     process.exit(1);
   } finally {
     rl.close();
