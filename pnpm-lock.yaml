@@ -36,12 +36,18 @@ importers:
       '@types/figlet':
         specifier: ^1.7.0
         version: 1.7.0
+      '@types/mocha':
+        specifier: ^10.0.9
+        version: 10.0.9
       '@types/node':
         specifier: ^22.5.3
         version: 22.5.3
       '@types/openurl':
         specifier: ^1.0.3
         version: 1.0.3
+      '@types/pkg-dir':
+        specifier: ^2.0.1
+        version: 2.0.1
       ts-node:
         specifier: ^10.9.2
         version: 10.9.2(@types/node@22.5.3)(typescript@5.6.3)
@@ -284,6 +290,9 @@ packages:
   '@types/lru-cache@5.1.1':
     resolution: {integrity: sha512-ssE3Vlrys7sdIzs5LOxCzTVMsU7i9oa/IaW92wF32JFb3CVczqOkru2xspuKczHEbG3nvmPY7IFqVmGGHdNbYw==}
 
+  '@types/mocha@10.0.9':
+    resolution: {integrity: sha512-sicdRoWtYevwxjOHNMPTl3vSfJM6oyW8o1wXeI7uww6b6xHg8eBznQDNSGBCDJmsE8UMxP05JgZRtsKbTqt//Q==}
+
   '@types/node@22.5.3':
     resolution: {integrity: sha512-njripolh85IA9SQGTAqbmnNZTdxv7X/4OYGPz8tgy5JDr8MP+uDBa921GpYEoDDnwm0Hmn5ZPeJgiiSTPoOzkQ==}
 
@@ -292,6 +301,10 @@ packages:
 
   '@types/pbkdf2@3.1.2':
     resolution: {integrity: sha512-uRwJqmiXmh9++aSu1VNEn3iIxWOhd8AHXNSdlaLfdAAdSTY9jYVeGWnzejM3dvrkbqE3/hyQkQQ29IFATEGlew==}
+
+  '@types/pkg-dir@2.0.1':
+    resolution: {integrity: sha512-/iK71pPn49Nh7+nwH5sZaihpaqsZzmGd6XfYRNioaL1bORtAa9mgXRtrK+tz3etQcgQJ4Mk0YFn9GQR8v/f17w==}
+    deprecated: This is a stub types definition. pkg-dir provides its own type definitions, so you do not need this installed.
 
   '@types/secp256k1@4.0.6':
     resolution: {integrity: sha512-hHxJU6PAEUn0TP4S/ZOzuTUvJWuZ6eIKeNKb5RBpODvSl6hp1Wrw4s7ATY50rklRCScUDpHzVA/DQdSjJ3UoYQ==}
@@ -1598,6 +1611,8 @@ snapshots:
 
   '@types/lru-cache@5.1.1': {}
 
+  '@types/mocha@10.0.9': {}
+
   '@types/node@22.5.3':
     dependencies:
       undici-types: 6.19.8
@@ -1609,6 +1624,10 @@ snapshots:
   '@types/pbkdf2@3.1.2':
     dependencies:
       '@types/node': 22.5.3
+
+  '@types/pkg-dir@2.0.1':
+    dependencies:
+      pkg-dir: 8.0.0
 
   '@types/secp256k1@4.0.6':
     dependencies:

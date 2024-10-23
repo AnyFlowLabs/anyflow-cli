@@ -2,11 +2,11 @@
 
 import figlet from 'figlet';
 import { Command } from "commander";
-import { init } from "./commands/init.js";
-import { authenticate } from "./commands/auth/auth.js";
-import { install } from "./commands/install.js";
-import { deploy } from "./commands/deploy.js";
-import { checkAuth } from "./commands/auth/check-auth.js";
+import { init } from "./commands/init";
+import { authenticate } from "./commands/auth/auth";
+import { install } from "./commands/install";
+import { deploy } from "./commands/deploy";
+import { checkAuth } from "./commands/auth/check-auth";
 
 async function main() {
   console.log("Starting AnyFlow CLI...");

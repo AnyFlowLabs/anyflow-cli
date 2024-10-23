@@ -1,7 +1,7 @@
 import fs from 'fs/promises';
 import path from 'path';
-import { packageDirectory } from 'pkg-dir';
 import readline from 'readline';
+import { getProjectRoot } from '../utils/getProjectRoot';
 
 const rl = readline.createInterface({
   input: process.stdin,
@@ -56,7 +56,7 @@ async function findHardhatConfig(dir = process.cwd()): Promise<string | null> {
 async function promptForConfigPath(): Promise<string | null> {
     return new Promise(async (resolve) => {
         rl.question('Please enter the path to your hardhat.config.ts(js) file: ', async (answer) => {
-            const dir = await packageDirectory();
+            const dir = await getProjectRoot();
 
             if (!dir) {
                 console.error('Could not find project root directory.');
@@ -99,6 +99,7 @@ async function promptForConfigPath(): Promise<string | null> {
         });
     });
 }
+
 function updateHardhatConfig(content: string): string {
     // Check if anyflow-cli import already exists
     if (!content.includes('anyflow-cli')) {

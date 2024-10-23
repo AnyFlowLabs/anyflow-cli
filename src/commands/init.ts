@@ -2,7 +2,7 @@ import fs from 'fs';
 import path from 'path';
 import crypto from 'crypto';
 import dotenv from 'dotenv';
-import { packageDirectory } from 'pkg-dir';
+import { getProjectRoot } from '../utils/getProjectRoot';
 
 export async function init() {
     await ensureEnvFile();
@@ -13,17 +13,6 @@ export async function init() {
       console.error('ENCRYPTION_KEY is not set in the environment variables.');
       process.exit(1);
     }    
-}
-
-async function getProjectRoot() {
-    const rootDir = await packageDirectory()
-  
-    if (!rootDir) {
-      console.error('Error: Could not find the project root');
-      process.exit(1);
-    }
-    
-    return rootDir;
 }
 
 async function ensureEnvFile() {
@@ -46,7 +35,7 @@ async function ensureEnvFile() {
       
       console.log('Added ENCRYPTION_KEY to existing .env file in the project root.');
     } else {
-      console.log('ENCRYPTION_KEY already exists in .env file.');
+      console.warn('ENCRYPTION_KEY already exists in .env file.');
     }
   }
 }

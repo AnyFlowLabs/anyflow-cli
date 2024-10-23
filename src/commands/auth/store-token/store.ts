@@ -2,8 +2,8 @@ import path from 'path';
 import os from 'os';
 import fs from 'fs/promises';
 import keytar from 'keytar';
-import { decrypt, encrypt } from './encrypt.js';
-import { getUser } from '../api/user.js';
+import { decrypt, encrypt } from './encrypt';
+import { getUser } from '../api/user';
 
 // Constants for the application
 export const SERVICE_NAME = "AnyFlowCLI";
@@ -20,7 +20,7 @@ export async function storeToken(token: string) {
 
     console.log("Token and user info stored securely using system keychain.");
   } catch (error) {
-    console.error("Error storing token in system keychain.");
+    console.warn("Error storing token in system keychain. Please check 'configuring-keytar-on-linux.md' on the anyflow-cli npm package page.");
     console.warn("Falling back to file-based storage.");
 
     // If keychain storage fails, encrypt and store the token in a file
