@@ -1,5 +1,5 @@
 import axios from "axios";
-import { getToken } from "./auth/store-token/store.js";
+import { getToken } from "./auth/store-token/store";
 
 export async function deploy() {
   let token = await getToken();

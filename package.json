@@ -3,9 +3,11 @@
   "description": "CLI for AnyFlow operations",
   "version": "1.0.0",
   "main": "dist/cli.js",
-  "type": "module",
   "bin": {
     "anyflow": "./dist/cli.js"
+  },
+  "engines": {
+    "node": "^20"
   },
   "scripts": {
     "test": "echo \"Error: no test specified\" && exit 1",
@@ -21,15 +23,17 @@
     "commander": "^12.1.0",
     "dotenv": "^16.4.5",
     "figlet": "^1.8.0",
+    "hardhat": "^2.22.14",
     "keytar": "^7.9.0",
     "open": "^10.1.0",
-    "openurl": "^1.1.1",
     "pkg-dir": "^8.0.0"
   },
   "devDependencies": {
     "@types/figlet": "^1.7.0",
+    "@types/mocha": "^10.0.9",
     "@types/node": "^22.5.3",
     "@types/openurl": "^1.0.3",
+    "@types/pkg-dir": "^2.0.1",
     "ts-node": "^10.9.2",
     "typescript": "^5.5.4"
   }

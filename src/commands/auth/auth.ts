@@ -1,7 +1,6 @@
 import dotenv from 'dotenv';
-import open from 'open';
 import readline from 'readline/promises';
-import { storeToken } from './store-token/store.js';
+import { storeToken } from './store-token/store';
 
 // Load environment variables from .env file
 dotenv.config();
@@ -15,6 +14,9 @@ export async function authenticate() {
 
   console.log("Opening your browser to authenticate...");
   console.log("URL:", tokenUrl);
+
+  // Using dynamic imports because of conflicts
+  const open = (await import('open')).default;
 
   // Attempt to open the authentication URL in the default browser
   try {
