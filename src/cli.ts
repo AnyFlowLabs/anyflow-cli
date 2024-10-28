@@ -7,6 +7,7 @@ import { authenticate } from "./commands/auth/auth";
 import { install } from "./commands/install";
 import { deploy } from "./commands/deploy";
 import { checkAuth } from "./commands/auth/check-auth";
+import { logout } from './commands/logout';
 
 async function main() {
   console.log("Starting AnyFlow CLI...");
@@ -44,6 +45,11 @@ try {
     .command("check-auth")
     .description("Check authentication status")
     .action(checkAuth);
+
+  program
+    .command("logout")
+    .description("Clear user credencials")
+    .action(logout)
 
   await program.parseAsync(process.argv);
 } catch (error) {
