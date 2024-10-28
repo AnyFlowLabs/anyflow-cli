@@ -12,8 +12,8 @@
   "scripts": {
     "test": "echo \"Error: no test specified\" && exit 1",
     "build": "tsc",
-    "start": "node -r dotenv/config dist/src/cli.js help",
-    "anyflow": "node -r dotenv/config dist/src/cli.js"
+    "start": "node -r dotenv/config dist/cli.js help",
+    "anyflow": "node -r dotenv/config dist/cli.js"
   },
   "keywords": [],
   "author": "",
