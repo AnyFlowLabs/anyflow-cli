@@ -53,8 +53,6 @@ export async function getToken(): Promise<string | null> {
   // First, try to get the token from the system keychain
   const token = await keytar.getPassword(SERVICE_NAME, ACCOUNT_NAME).catch(() => {
     console.log("Token not found in keychain, trying file...");
-
-    return
   })
 
   if (token) {

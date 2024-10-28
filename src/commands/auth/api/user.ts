@@ -17,12 +17,14 @@ export async function getUserResponse(token:string) {
 export async function getUser(token:string) {
   try {
     const response = await getUserResponse(token);
+    
+    if (response.status === 200) {
+      console.log("User authenticated.");
+    }
 
     return response.data;
   } catch (error: any) {
-    if (error.response.status === 200) {
-      console.log("User authenticated.");
-    } else if (error.response.status === 401) {
+    if (error.response.status === 401) {
       console.log("Invalid or expired token. Please run 'anyflow auth' to authenticate. STATUS: " + error.response.status);
       process.exit(1);
     } else if (error.response.status === 429) {

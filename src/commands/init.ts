@@ -9,8 +9,8 @@ export async function init() {
     const rootDir = await getProjectRoot();
     dotenv.config({ path: path.join(rootDir, '.env') });
     
-    if (!process.env.ENCRYPTION_KEY) {
-      console.error('ENCRYPTION_KEY is not set in the environment variables.');
+    if (!process.env.ANYFLOW_ENCRYPTION_KEY) {
+      console.error('ANYFLOW_ENCRYPTION_KEY is not set in the environment variables.');
       process.exit(1);
     }    
 }
@@ -22,20 +22,20 @@ async function ensureEnvFile() {
   if (!fs.existsSync(envPath)) {
     const key = crypto.randomBytes(32).toString('hex');
     
-    fs.writeFileSync(envPath, `ENCRYPTION_KEY=${key}\n`);
+    fs.writeFileSync(envPath, `ANYFLOW_ENCRYPTION_KEY=${key}\n`);
     
     console.log('Updated .env file with encryption key in the project root.');
   } else {
     let envContent = fs.readFileSync(envPath, 'utf8');
     
-    if (!envContent.includes('ENCRYPTION_KEY=')) {
+    if (!envContent.includes('ANYFLOW_ENCRYPTION_KEY=')) {
       const key = crypto.randomBytes(32).toString('hex');
       
-      fs.appendFileSync(envPath, `\nENCRYPTION_KEY=${key}\n`);
+      fs.appendFileSync(envPath, `\nANYFLOW_ENCRYPTION_KEY=${key}\n`);
       
-      console.log('Added ENCRYPTION_KEY to existing .env file in the project root.');
+      console.log('Added ANYFLOW_ENCRYPTION_KEY to existing .env file in the project root.');
     } else {
-      console.warn('ENCRYPTION_KEY already exists in .env file.');
+      console.warn('ANYFLOW_ENCRYPTION_KEY already exists in .env file.');
     }
   }
 }
