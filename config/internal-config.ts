@@ -1,4 +1,7 @@
-export const RPC_BASE_URL = 'http://nest:3000';
+import dotenv from 'dotenv';
+dotenv.config();
+
+export const RPC_BASE_URL = process.env.ANYFLOW_RPC_BASE_URL;
 export const CHAIN_DEPLOYMENT_ID = "11155111"
 
 // Proxy addresses

@@ -20,7 +20,7 @@ export async function storeToken(token: string) {
 
     console.log("Token and user info stored securely using system keychain.");
   } catch (error) {
-    console.warn("Error storing token in system keychain. Please check 'configuring-keytar-on-linux.md' on the anyflow-cli npm package page.");
+    console.warn("Error storing token in system keychain.");
     console.warn("Falling back to file-based storage.");
 
     // If keychain storage fails, encrypt and store the token in a file

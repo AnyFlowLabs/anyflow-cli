@@ -23,6 +23,7 @@ async function ensureEnvFile() {
     const key = crypto.randomBytes(32).toString('hex');
     
     fs.writeFileSync(envPath, `ENCRYPTION_KEY=${key}\n`);
+    fs.appendFileSync(envPath, `\nANYFLOW_RCP_BASE_URL=http://nest:3000`);
     
     console.log('Updated .env file with encryption key in the project root.');
   } else {
@@ -36,6 +37,14 @@ async function ensureEnvFile() {
       console.log('Added ENCRYPTION_KEY to existing .env file in the project root.');
     } else {
       console.warn('ENCRYPTION_KEY already exists in .env file.');
+    }
+
+    if(!envContent.includes("ANYFLOW_BASE_RPC_URL")) {
+      fs.appendFileSync(envPath, `\nANYFLOW_RCP_BASE_URL=http://nest:3000`);
+      console.log('Added ANYFLOW_BASE_RPC_URL to existing .env file in the project root.');
+    }else {
+      console.warn('ANYFLOW_BASE_RPC_URL already exists in .env file.');
+
     }
   }
 }
