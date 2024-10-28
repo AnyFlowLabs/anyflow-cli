@@ -1,6 +1,11 @@
 import axios from "axios";
 import { getToken } from "./auth/store-token/store";
+import fs from 'fs';
+import FormData from 'form-data';
+import AdmZip from 'adm-zip';
+import path from 'path';
 
+// WIP
 export async function deploy() {
   let token = await getToken();
 
@@ -9,18 +14,35 @@ export async function deploy() {
     return;
   }
 
-  console.log("Deploying with authenticated backend call...");
+  console.log("Preparing artifact for deployment...");
   
   try {
-    // Replace with actual API URL
-    const response = await axios.post(
-      "https://your-backend-api-url/deploy",
-      {},
-      {
-        headers: { Authorization: `Bearer ${token}` },
-      }
-    );
-    console.log("Deployment successful:", response.data);
+    // Create a zip file
+    const zip = new AdmZip();
+    // Add all files from the artifacts folder
+    const artifactsFolderPath = path.join(process.cwd(), 'artifacts');
+    zip.addLocalFolder(artifactsFolderPath);
+
+    const zipFilePath = path.join(process.cwd(), 'artifact.zip');
+    zip.writeZip(zipFilePath);
+
+    // Prepare form data
+    const form = new FormData();
+    form.append('file', fs.createReadStream(zipFilePath));
+
+    // Send the zipped artifact
+    const response = await axios.post("http://localhost/api/deployments/upload-artifacts", {
+      headers: form.getHeaders()
+    }).then(res => {
+      console.log(res.data)
+    }).catch(err => {
+      console.error(err)
+    })
+    
+    console.log("Deployment successful:", response);
+
+    // Clean up the zip file
+    fs.unlinkSync(zipFilePath);
   } catch (error: any) {
     console.error("Failed to deploy:", error.message);
   }
