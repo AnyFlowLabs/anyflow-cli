@@ -2,7 +2,7 @@ import fs from 'fs';
 import path from 'path';
 import crypto from 'crypto';
 import dotenv from 'dotenv';
-import { packageDirectory } from 'pkg-dir';
+import { getProjectRoot } from '../utils/getProjectRoot';
 
 export async function init() {
     await ensureEnvFile();
@@ -15,17 +15,6 @@ export async function init() {
     }    
 }
 
-async function getProjectRoot() {
-    const rootDir = await packageDirectory()
-  
-    if (!rootDir) {
-      console.error('Error: Could not find the project root');
-      process.exit(1);
-    }
-    
-    return rootDir;
-}
-
 async function ensureEnvFile() {
   const rootDir = await getProjectRoot();
   const envPath = path.join(rootDir, '.env');
@@ -34,6 +23,7 @@ async function ensureEnvFile() {
     const key = crypto.randomBytes(32).toString('hex');
     
     fs.writeFileSync(envPath, `ENCRYPTION_KEY=${key}\n`);
+    fs.appendFileSync(envPath, `\nANYFLOW_RCP_BASE_URL=http://nest:3000`);
     
     console.log('Updated .env file with encryption key in the project root.');
   } else {
@@ -46,7 +36,15 @@ async function ensureEnvFile() {
       
       console.log('Added ENCRYPTION_KEY to existing .env file in the project root.');
     } else {
-      console.log('ENCRYPTION_KEY already exists in .env file.');
+      console.warn('ENCRYPTION_KEY already exists in .env file.');
+    }
+
+    if(!envContent.includes("ANYFLOW_BASE_RPC_URL")) {
+      fs.appendFileSync(envPath, `\nANYFLOW_RCP_BASE_URL=http://nest:3000`);
+      console.log('Added ANYFLOW_BASE_RPC_URL to existing .env file in the project root.');
+    }else {
+      console.warn('ANYFLOW_BASE_RPC_URL already exists in .env file.');
+
     }
   }
 }
