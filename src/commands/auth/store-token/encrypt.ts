@@ -4,19 +4,19 @@ import dotenv from 'dotenv';
 // Load environment variables from .env file
 dotenv.config();
 
-const ENCRYPTION_KEY = process.env.ENCRYPTION_KEY;
+const ANYFLOW_ENCRYPTION_KEY = process.env.ANYFLOW_ENCRYPTION_KEY;
 
 // Encrypt the token using AES-256-CBC
 export function encrypt(text: string): string {
   // Check if encryption key is set
-  if (!ENCRYPTION_KEY) {
-    console.error("ENCRYPTION_KEY is not set in the environment variables, run `anyflow init` to set it up.");
+  if (!ANYFLOW_ENCRYPTION_KEY) {
+    console.error("ANYFLOW_ENCRYPTION_KEY is not set in the environment variables, run `anyflow init` to set it up.");
     process.exit(1);
   }
 
   const iv = crypto.randomBytes(16);
   
-  const cipher = crypto.createCipheriv('aes-256-cbc', Buffer.from(ENCRYPTION_KEY!, 'hex'), iv);
+  const cipher = crypto.createCipheriv('aes-256-cbc', Buffer.from(ANYFLOW_ENCRYPTION_KEY!, 'hex'), iv);
   
   let encrypted = cipher.update(text, 'utf8', 'hex');
   
@@ -28,8 +28,8 @@ export function encrypt(text: string): string {
 // Decrypt the token using AES-256-CBC
 export function decrypt(text: string): string {
   // Check if encryption key is set
-  if (!ENCRYPTION_KEY) {
-    console.error("ENCRYPTION_KEY is not set in the environment variables, run `anyflow init` to set it up.");
+  if (!ANYFLOW_ENCRYPTION_KEY) {
+    console.error("ANYFLOW_ENCRYPTION_KEY is not set in the environment variables, run `anyflow init` to set it up.");
     process.exit(1);
   }
 
@@ -37,7 +37,7 @@ export function decrypt(text: string): string {
   
   const iv = Buffer.from(ivHex, 'hex');
   
-  const decipher = crypto.createDecipheriv('aes-256-cbc', Buffer.from(ENCRYPTION_KEY!, 'hex'), iv);
+  const decipher = crypto.createDecipheriv('aes-256-cbc', Buffer.from(ANYFLOW_ENCRYPTION_KEY!, 'hex'), iv);
   
   let decrypted = decipher.update(encryptedHex, 'hex', 'utf8');
   

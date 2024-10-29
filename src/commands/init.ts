@@ -44,7 +44,6 @@ async function ensureEnvFile() {
       console.log('Added ANYFLOW_BASE_RPC_URL to existing .env file in the project root.');
     }else {
       console.warn('ANYFLOW_BASE_RPC_URL already exists in .env file.');
-
     }
   }
 }

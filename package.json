@@ -1,7 +1,7 @@
 {
-  "name": "anyflow-cli",
+  "name": "anyflow-cli-test",
   "description": "CLI for AnyFlow operations",
-  "version": "1.0.0",
+  "version": "1.0.2",
   "main": "dist/cli.js",
   "bin": {
     "anyflow": "./dist/cli.js"
@@ -15,10 +15,28 @@
     "start": "node -r dotenv/config dist/cli.js help",
     "anyflow": "node -r dotenv/config dist/cli.js"
   },
-  "keywords": [],
-  "author": "",
+  "homepage": "anyflow.pro",
+  "keywords": [
+    "anyflowm",
+    "web3",
+    "web 3",
+    "smart-contracts",
+    "smart contracts",
+    "erc721",
+    "erc20",
+    "hardhat",
+    "deploy",
+    "nft",
+    "token",
+    "solidity",
+    "solana",
+    "evm"
+  ],
+  "author": "AnyflowLabs",
   "license": "ISC",
   "dependencies": {
+    "@types/adm-zip": "^0.5.6",
+    "adm-zip": "^0.5.16",
     "axios": "^1.7.7",
     "commander": "^12.1.0",
     "dotenv": "^16.4.5",
