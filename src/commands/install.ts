@@ -8,52 +8,58 @@ const rl = readline.createInterface({
   output: process.stdout
 });
 
+type HardhatConf = {
+    path: string,
+    type: string
+}
+
 export async function install() {
     console.log('Performing local file manipulation...');
     
     // Find the hardhat.config.ts file
-    let hardhatConfigPath = await findHardhatConfig();
+    let hardhatConfig: HardhatConf = await findHardhatConfig()
     
-    if (!hardhatConfigPath) {
-        hardhatConfigPath = await promptForConfigPath();
+    if (hardhatConfig.path.length < 1) {
+        hardhatConfig = await promptForConfigPath();
     }
 
-    if (!hardhatConfigPath) {
+    if (!hardhatConfig) {
         console.error('Could not locate hardhat.config.ts(js) file. Installation aborted.');
         return;
     }
 
     // Read the existing config file
-    let configContent = await fs.readFile(hardhatConfigPath, 'utf-8');
+    let configContent = await fs.readFile(hardhatConfig.path, 'utf-8');
 
     // Modify the config content
-    configContent = updateHardhatConfig(configContent);
+    configContent = updateHardhatConfig(configContent, hardhatConfig.type);
 
     // Write the updated config back to the file
-    await fs.writeFile(hardhatConfigPath, configContent, 'utf-8');
+    await fs.writeFile(hardhatConfig.path, configContent, 'utf-8');
 
     console.log('Successfully updated hardhat.config.ts');
 }
 
-async function findHardhatConfig(dir = process.cwd()): Promise<string | null> {
+async function findHardhatConfig(dir = process.cwd()): Promise<{ path: string; type: string }> {
     const files = await fs.readdir(dir);
     const configFile = files.find(file => file === 'hardhat.config.ts' || file === 'hardhat.config.js');
     
     if (configFile) {
-        return path.join(dir, configFile);
+        const type = configFile.endsWith('.ts') ? 'ts' : 'js';
+        return { path: path.join(dir, configFile), type };
     }
 
     const parentDir = path.dirname(dir);
 
     if (parentDir === dir) {
         console.warn('Could not find hardhat.config.ts(js) file automatically.');
-        return null; // Reached root directory
+        return {path: "", type: "js"};
     }
 
     return findHardhatConfig(parentDir);
 }
 
-async function promptForConfigPath(): Promise<string | null> {
+async function promptForConfigPath(): Promise<HardhatConf> {
     return new Promise(async (resolve) => {
         rl.question('Please enter the path to your hardhat.config.ts(js) file: ', async (answer) => {
             const dir = await getProjectRoot();
@@ -68,12 +74,16 @@ async function promptForConfigPath(): Promise<string | null> {
 
             let fullPath = path.resolve(dir, answer);
 
+            let extension
+
             if (!fullPath.includes("hardhat.config.ts") && !fullPath.includes("hardhat.config.js")) {
-                const extension = await new Promise<string>((resolveExt) => {
+                extension = await new Promise<string>((resolveExt) => {
                     rl.question("Path does not contain hardhat.config.ts(js). Please enter the file extension (ts or js): ", resolveExt);
                 });
 
                 fullPath = path.resolve(fullPath, `hardhat.config.${extension}`);
+            }else {
+                extension = fullPath.includes("hardhat.config.ts") ? "ts" : "js"
             }
             
             try {
@@ -82,29 +92,33 @@ async function promptForConfigPath(): Promise<string | null> {
                 if (stats.isFile()) {
                     rl.close();
                 
-                    resolve(fullPath);
+                    resolve({path: fullPath, type: extension});
                 } else {
                     console.error('The specified path is not a file.');
                     rl.close();
                 
-                    resolve(null);
+                    resolve({path: "", type: ""});
                 }
             } catch (error) {
                 console.error('The specified file does not exist or is not accessible.');
                 
                 rl.close();
                 
-                resolve(null);
+                resolve({path: "", type: ""});
             }
         });
     });
 }
 
-function updateHardhatConfig(content: string): string {
+function updateHardhatConfig(content: string, type: string): string {
     // Check if anyflow-cli import already exists
     if (!content.includes('anyflow-cli')) {
-        // Add import statement
-        content = `import AnyflowHardhatConfig from "anyflow-cli/hardhat.config";\n${content}`;
+        // Add import statement based on type
+        if (type === 'ts') {
+            content = `import AnyflowHardhatConfig from "anyflow-cli/hardhat.config";\n${content}`;
+        } else {
+            content = `const AnyflowHardhatConfig = require("anyflow-cli/hardhat.config");\n${content}`;
+        }
     }
 
     // Find the HardhatUserConfig object with any variable name
@@ -113,7 +127,7 @@ function updateHardhatConfig(content: string): string {
 
     if (match) {
         const existingConfig = match[0];
-        const configName = match[1]; // Capture the variable name
+        const configName = match[1];
 
         // Check if ...anyflowConfig already exists
         if (!existingConfig.includes('...AnyflowHardhatConfig')) {

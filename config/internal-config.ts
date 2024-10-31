@@ -1,7 +1,13 @@
-export const RPC_BASE_URL = 'http://nest:3000';
+import dotenv from 'dotenv';
+dotenv.config();
+
+export const RPC_BASE_URL = process.env.ANYFLOW_RPC_BASE_URL;
 export const CHAIN_DEPLOYMENT_ID = "11155111"
 
 // Proxy addresses
+
+// Note: we use these addresses only as proxies, so there's no risk of it being public
+// for more information visit: https://docs.anyflow.pro/docs/how_it_works
 
 // 0x0C86714619Ee1Ba9C4164cAAC7988d02538A6264
 export const PK1 = '0x814639896b438bc5ca3037b8a2e9dd8597790181f13c60406aa61fc411c5d162'
