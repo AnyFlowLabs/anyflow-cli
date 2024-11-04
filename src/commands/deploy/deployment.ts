@@ -35,7 +35,7 @@ export async function createDeployment(network: string[], token: string) {
       container_image: "anyflow-node-20"
     }
   
-    const response = await axios.post(`BACKEND_URL/deployments`, deployment, {
+    const response = await axios.post(`${BACKEND_URL}/deployments`, deployment, {
       headers: {
         'Content-Type': 'application/json',
         "Authorization": `Bearer ${token}`
