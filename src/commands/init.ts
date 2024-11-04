@@ -9,8 +9,8 @@ export async function init() {
     const rootDir = await getProjectRoot();
     dotenv.config({ path: path.join(rootDir, '.env') });
     
-    if (!process.env.ENCRYPTION_KEY) {
-      console.error('ENCRYPTION_KEY is not set in the environment variables.');
+    if (!process.env.ANYFLOW_ENCRYPTION_KEY) {
+      console.error('ANYFLOW_ENCRYPTION_KEY is not set in the environment variables.');
       process.exit(1);
     }    
 }
