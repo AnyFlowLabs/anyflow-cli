@@ -5,7 +5,7 @@ import { Command } from "commander";
 import { init } from "./commands/init";
 import { authenticate } from "./commands/auth/auth";
 import { install } from "./commands/install";
-import { deploy } from "./commands/deploy";
+import { deploy } from "./commands/deploy/deploy";
 import { checkAuth } from "./commands/auth/check-auth";
 import { logout } from './commands/logout';
 
@@ -39,7 +39,11 @@ try {
   program
     .command("deploy")
     .description("Deploy the project by calling authenticated backend routes")
-    .action(deploy);
+    .option("--networks <network...>", "Specify the network(s) to deploy to")
+    .action((options) => {
+      console.log("Parsed networks:", options.networks);
+      return deploy(options.networks);
+    });
 
   program
     .command("check-auth")

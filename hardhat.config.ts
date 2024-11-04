@@ -1,6 +1,6 @@
 // I_KNOW_WHAT_YOU_DID_LAST_SUMMER_MR_ROBOT_AND_YOU_SHALL_NOT_PASS_BECAUSE_A_BOMB_HAS_BEEN_PLANTED
 import { HardhatUserConfig } from "hardhat/config";
-import { PK1, PK2, PK3, PK4, PK5, PK6, PK7, PK8, PK9, PK10, RPC_BASE_URL, CHAIN_DEPLOYMENT_ID } from './config/internal-config';
+import { PK1, PK2, PK3, PK4, PK5, PK6, PK7, PK8, PK9, PK10, RPC_BASE_URL, CHAIN_DEPLOYMENT_ID } from './src/config/internal-config';
 
 const accounts = [PK1, PK2, PK3, PK4, PK5, PK6, PK7, PK8, PK9, PK10]
 

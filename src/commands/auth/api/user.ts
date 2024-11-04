@@ -1,6 +1,5 @@
 import axios from "axios";
-
-const BACKEND_URL = "https://api-staging.anyflow.pro/api";
+import { BACKEND_URL } from "../../../config/internal-config";
 
 // Make a request to get user information
 export async function getUserResponse(token:string) {
