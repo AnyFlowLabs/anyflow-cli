@@ -6,7 +6,7 @@ import path from 'path';
 import { getProjectRoot } from "../../utils/getProjectRoot";
 import { BACKEND_URL } from "../../config/internal-config";
 
-export async function sendFile(zipFilePath: string, id: number, token: string = "1|XNnor9ev8htsxANtvpf3z9TwrlRIY9PvK8q0FTMD4e5a14ec") {
+export async function sendFile(zipFilePath: string, id: number, token: string) {
     try {
       // Prepare form data
       const form = new FormData();

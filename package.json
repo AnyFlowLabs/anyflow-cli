@@ -1,7 +1,7 @@
 {
   "name": "anyflow-cli-test",
   "description": "CLI for AnyFlow operations",
-  "version": "1.0.4",
+  "version": "1.0.5",
   "main": "dist/cli.js",
   "bin": {
     "anyflow": "./dist/cli.js"
@@ -41,6 +41,7 @@
     "commander": "^12.1.0",
     "dotenv": "^16.4.5",
     "figlet": "^1.8.0",
+    "form-data": "^4.0.1",
     "hardhat": "^2.22.14",
     "keytar": "^7.9.0",
     "open": "^10.1.0",
