@@ -10,7 +10,7 @@
     "node": "^20"
   },
   "scripts": {
-    "test": "echo \"Error: no test specified\" && exit 1",
+    "test": "echo \"Warn: no test specified\" && exit 0",
     "build": "tsc",
     "start": "node -r dotenv/config dist/cli.js help",
     "anyflow": "node -r dotenv/config dist/cli.js"
