@@ -5,6 +5,11 @@ import { createDeployment } from "./deployment";
 import { runCommand } from "./command";
 
 export async function deploy(network: string[]) {
+  if (!network || network.length < 1) {
+    console.error("Please specify a network using --networks");
+    process.exit(1);
+  }
+
   let token = await getToken();
 
   if (!token) {
@@ -14,21 +19,23 @@ export async function deploy(network: string[]) {
 
   console.log("Creating deployment...");
 
-  const deployment = await createDeployment(network, token)
+  const deployment = await createDeployment(network, token);
 
   console.log("Deployment created");
 
-  const ids: number[] = deployment.data.chain_deployment_ids
+  const ids: number[] = deployment.data.chain_deployment_ids;
 
-  await Promise.all(ids.map(async (id) => {
-    await writeDeploymentId(id)
+  await Promise.all(
+    ids.map(async (id) => {
+      await writeDeploymentId(id);
 
-    await runCommand(network)
-  }))
+      await runCommand(network);
+    })
+  );
 
   console.log("Preparing artifact for deployment...");
-  
-  const zipFilePath = await zipFile()
 
-  await sendFile(zipFilePath, deployment.data.id)
+  const zipFilePath = await zipFile();
+
+  await sendFile(zipFilePath, deployment.data.id, token);
 }
