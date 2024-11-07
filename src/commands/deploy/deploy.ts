@@ -23,7 +23,7 @@ export async function deploy(network: string[]) {
 
   console.log("Deployment created");
 
-  const ids: number[] = deployment.data.chain_deployment_ids;
+  const ids: number[] = extractIds(deployment);
 
   await Promise.all(
     ids.map(async (id) => {
@@ -38,4 +38,9 @@ export async function deploy(network: string[]) {
   const zipFilePath = await zipFile();
 
   await sendFile(zipFilePath, deployment.data.id, token);
+}
+
+
+function extractIds(deployment: any) {
+  return deployment.data.chain_deployments.map((chains: any) => chains.id);
 }
