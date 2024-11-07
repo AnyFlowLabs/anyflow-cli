@@ -13,7 +13,7 @@ export async function sendFile(zipFilePath: string, id: number, token: string) {
       form.append('file', fs.createReadStream(zipFilePath));
   
       // Send the zipped artifact
-      const response = await axios.post(`${BACKEND_URL}/upload-artifacts`, form, {
+      const response = await axios.post(`${BACKEND_URL}/${id}/upload-artifacts`, form, {
         headers: {
           ...form.getHeaders(),
           "Authorization": `Bearer ${token}`
