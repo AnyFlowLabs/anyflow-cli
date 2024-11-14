@@ -15,7 +15,6 @@ export async function runCommand(network: string[]) {
       if (code !== 0) {
         console.error(`Deploy failed with exit code ${code}`);
         reject(new Error(`Deploy failed with exit code ${code}`));
-        process.exit(1);
       } else {
         console.log("Deploy successful");
         resolve();

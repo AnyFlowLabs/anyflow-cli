@@ -11,7 +11,8 @@ type Chains = {
 type Deployment ={
   chains: Chains[],
   framework: "hardhat",
-  container_image: string
+  container_image: string,
+  is_cli: boolean
 }
 
 export async function createDeployment(network: string[], token: string) {
@@ -34,10 +35,11 @@ export async function createDeployment(network: string[], token: string) {
     const deployment: Deployment = {
       framework: "hardhat",
       chains: chainsArray,
-      container_image: `anyflow-node-${nodeVersion}`
+      container_image: `anyflow-node-${nodeVersion}`,
+      is_cli: true
     }
   
-    const response = await axios.post(`${BACKEND_URL}/deployments`, deployment, {
+    const response = await axios.post(`${BACKEND_URL}/deployments?cli=true`, deployment, {
       headers: {
         'Content-Type': 'application/json',
         "Authorization": `Bearer ${token}`

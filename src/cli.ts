@@ -8,6 +8,7 @@ import { install } from "./commands/install";
 import { deploy } from "./commands/deploy/deploy";
 import { checkAuth } from "./commands/auth/check-auth";
 import { logout } from './commands/logout';
+import { fix } from './commands/deploy/fix';
 
 async function main() {
   console.log("Starting AnyFlow CLI...");
@@ -54,6 +55,11 @@ try {
     .command("logout")
     .description("Clear user credencials")
     .action(logout)
+  
+  program
+    .command("fix")
+    .description("Fix failed deployments")
+    .action(fix)
 
   await program.parseAsync(process.argv);
 } catch (error) {
