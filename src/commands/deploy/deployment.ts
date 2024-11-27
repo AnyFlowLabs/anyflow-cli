@@ -2,7 +2,8 @@ import fs from 'fs';
 import path from "path"
 import axios from "axios"
 import { getProjectRoot } from '../../utils/getProjectRoot';
-import { BACKEND_URL, SUPPORTED_CHAINS } from "../../config/internal-config"
+import { BACKEND_URL } from "../../config/internal-config"
+import { getChains } from './chains';
 
 type Chains = {
     chain_id: number
@@ -18,10 +19,12 @@ type Deployment ={
 export async function createDeployment(network: string[], token: string) {
     const chainsArray: Chains[] = []
   
+    const chains = await getChains();
+
     network.forEach((net) => {
-      if(!SUPPORTED_CHAINS.includes(Number(net))){
+      if(!chains.includes(Number(net))){
         console.error(`Unsupported chain given: ${net} remove and try again`)
-        console.log(`Supported chains: ${SUPPORTED_CHAINS}`)
+        console.log(`Supported chains: ${chains}`)
         process.exit(1)
       }
   

@@ -12,8 +12,7 @@ export async function deploy(network: string[]) {
     process.exit(1);
   }
 
-  // let token = await getToken();
-  let token = "8|yX1PHaxWFf17kSS3sl0JADOcCp7hxEuevbWwpMYw0b671c60"
+  let token = await getToken();
 
   if (!token) {
     console.log('You need to authenticate first. Run "anyflow auth".');

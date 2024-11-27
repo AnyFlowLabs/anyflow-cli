@@ -6,8 +6,7 @@ export async function fix() {
   console.log("Fixing failed deployments...");
   const path = `anyflow_failed_deployments.txt`;
 
-  // let token = await getToken();
-  let token = "8|yX1PHaxWFf17kSS3sl0JADOcCp7hxEuevbWwpMYw0b671c60"
+  let token = await getToken();
 
   const failedDeployments: {chainId: number, status: string}[] = [];
 
@@ -38,6 +37,6 @@ export async function fix() {
   });
 
   for (const deployment of failedDeployments) {
-    await updateChainDeploymentStatus(deployment.chainId, deployment.status, token);
+    await updateChainDeploymentStatus(deployment.chainId, deployment.status, token!);
   }
 }
