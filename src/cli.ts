@@ -9,6 +9,7 @@ import { deploy } from "./commands/deploy/deploy";
 import { checkAuth } from "./commands/auth/check-auth";
 import { logout } from './commands/logout';
 import { fix } from './commands/deploy/fix';
+import { version } from '../package.json';
 
 async function main() {
   console.log("Starting AnyFlow CLI...");
@@ -20,7 +21,7 @@ try {
   program
     .name("anyflow")
     .description("CLI for AnyFlow operations, command init to initialize the project")
-    .version("1.0.0");
+    .version(version);
 
   program
     .command("init")
