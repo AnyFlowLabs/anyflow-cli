@@ -3,15 +3,12 @@ import { BACKEND_URL } from "../../../config/internal-config";
 
 // Make a request to get user information
 export async function getUserResponse(token:string) {
-    const response = await axios.get(`${BACKEND_URL}k/user`, {
+    const response = await axios.get(`${BACKEND_URL}/user`, {
       headers: {
         'Authorization': `Bearer ${token}`
       }
     });
 
-    console.log(response.data);
-    console.log(response);
-    console.log("evydaguiwohdaoijdiwojad");
     return response
 }
   

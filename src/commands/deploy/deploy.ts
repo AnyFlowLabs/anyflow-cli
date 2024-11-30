@@ -6,7 +6,7 @@ import { runCommand } from "./command";
 import axios from "axios";
 import { BACKEND_URL } from "../../config/internal-config";
 
-export async function deploy(network: string[]) {
+export async function deploy(network: string[], deterministicAddresses: boolean = false) {
   if (!network || network.length < 1) {
     console.error("Please specify a network using --networks");
     process.exit(1);
@@ -21,7 +21,7 @@ export async function deploy(network: string[]) {
 
   console.log("Creating deployment...");
 
-  const deployment = await createDeployment(network, token);
+  const deployment = await createDeployment(network, token, deterministicAddresses);
 
   console.log("Deployment created");
 
@@ -45,7 +45,11 @@ export async function deploy(network: string[]) {
         failedChains.push(chain.chain_id);
       }
     })
-  );
+  ).catch((error) => {
+    console.error("Error deploying:", error);
+  }).finally(() => {
+    console.log("Deployment dispatched");
+  });
 
   console.log("Preparing artifact for deployment...");
 

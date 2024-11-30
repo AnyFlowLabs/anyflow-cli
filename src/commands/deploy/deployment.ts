@@ -8,15 +8,16 @@ import { getChains } from './chains';
 type Chains = {
     chain_id: number
 }
-  
+
 type Deployment ={
   chains: Chains[],
   framework: "hardhat",
   container_image: string,
-  is_cli: boolean
+  is_cli: boolean,
+  deterministic_addresses: boolean
 }
 
-export async function createDeployment(network: string[], token: string) {
+export async function createDeployment(network: string[], token: string, deterministicAddresses: boolean) {
     const chainsArray: Chains[] = []
   
     const chains = await getChains();
@@ -39,9 +40,10 @@ export async function createDeployment(network: string[], token: string) {
       framework: "hardhat",
       chains: chainsArray,
       container_image: `anyflow-node-${nodeVersion}`,
-      is_cli: true
+      is_cli: true,
+      deterministic_addresses: deterministicAddresses
     }
-  
+    
     const response = await axios.post(`${BACKEND_URL}/deployments?cli=true`, deployment, {
       headers: {
         'Content-Type': 'application/json',
@@ -53,7 +55,7 @@ export async function createDeployment(network: string[], token: string) {
       console.log(err)
       console.log("status", err.status)
       console.log("message:", err.message)
-  
+      
       process.exit(1)
     })
 
