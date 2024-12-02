@@ -32,14 +32,14 @@ export async function deploy(network: string[], deterministicAddresses: boolean 
     chain_data.map(async (chain) => {
       await writeDeploymentId(chain.id);
       
-      await updateChainDeploymentStatus(chain.id, 'DEPLOYING', token);
+      await updateChainDeploymentStatus(chain.id, 'deploying', token);
 
       try {
         await runCommand(network);
         
-        await updateChainDeploymentStatus(chain.id, 'FINISHED', token);
+        await updateChainDeploymentStatus(chain.id, 'finished', token);
       } catch (error) {
-        await updateChainDeploymentStatus(chain.id, 'FAILED', token);
+        await updateChainDeploymentStatus(chain.id, 'failed', token);
         console.error(`Deployment failed for chain ID ${chain.id}:`);
 
         failedChains.push(chain.chain_id);
@@ -67,8 +67,12 @@ function extractIds(deployment: any) {
 }
 
 export async function updateChainDeploymentStatus(chainId: number, status: string, token: string) {
-  const response = await axios.put(`${BACKEND_URL}/chain-deployments/${chainId}/status?status=${status}`, {},{
-    headers: {
+  const response = await axios.put(`${BACKEND_URL}/chain-deployments/${chainId}`, 
+    {
+      status: status
+    },
+    {
+      headers: {
       'Content-Type': 'application/json',
       "Authorization": `Bearer ${token}`
     },
