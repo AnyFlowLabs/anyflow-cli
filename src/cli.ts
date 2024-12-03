@@ -45,8 +45,8 @@ async function main() {
       .option("--deterministic-addresses", "Use deterministic addresses for deployment")
       .action((options) => {
         console.log("Parsed networks:", options.networks);
-        console.log("Deterministic addresses option:", options.deterministicAddresses);
-        return deploy(options.networks, options.deterministicAddresses);
+        console.log("Deterministic addresses option:", options.deterministicAddresses || false);
+        return deploy(options.networks, options.deterministicAddresses || false);
       });
 
     program
