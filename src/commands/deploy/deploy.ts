@@ -77,12 +77,7 @@ export async function updateChainDeploymentStatus(chainId: number, status: strin
       "Authorization": `Bearer ${token}`
     },
   }).catch((error) => {
-    console.error('Failed to update chain deployment status:', {
-      chainId,
-      status,
-      error: error.response?.data || error.message || error
-    });
-    return error;
+    throw error;
   });
 
   if (response.status < 200 || response.status >= 300) {
