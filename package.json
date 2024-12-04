@@ -1,7 +1,7 @@
 {
   "name": "anyflow-cli-test",
   "description": "CLI for AnyFlow operations",
-  "version": "1.0.5",
+  "version": "1.0.6",
   "main": "dist/cli.js",
   "bin": {
     "anyflow": "./dist/cli.js"
@@ -13,7 +13,13 @@
     "test": "echo \"Warn: no test specified\" && exit 0",
     "build": "tsc",
     "start": "node -r dotenv/config dist/cli.js help",
-    "anyflow": "node -r dotenv/config dist/cli.js"
+    "anyflow": "node -r dotenv/config dist/cli.js",
+    "build:dev": "NODE_ENV=development npm run build",
+    "build:staging": "NODE_ENV=staging npm run build",
+    "build:prod": "NODE_ENV=production npm run build",
+    "publish:dev": "npm run build:dev && npm publish --tag dev",
+    "publish:staging": "npm run build:staging && npm publish --tag beta",
+    "publish:prod": "npm run build:prod && npm publish --tag latest"
   },
   "homepage": "anyflow.pro",
   "keywords": [
