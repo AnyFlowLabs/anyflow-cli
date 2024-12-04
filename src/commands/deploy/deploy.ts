@@ -4,16 +4,15 @@ import { sendFile, zipFile } from "./artifacts";
 import { createDeployment } from "./deployment";
 import { runCommand } from "./command";
 import axios from "axios";
-import { BACKEND_URL } from "../../config/internal-config";
+import { BACKEND_URL, RPC_BASE_URL } from "../../config/internal-config";
 
-export async function deploy(network: string[]) {
+export async function deploy(network: string[], deterministicAddresses: boolean = false) {
   if (!network || network.length < 1) {
     console.error("Please specify a network using --networks");
     process.exit(1);
   }
 
-  // let token = await getToken();
-  let token = "8|yX1PHaxWFf17kSS3sl0JADOcCp7hxEuevbWwpMYw0b671c60"
+  let token = await getToken();
 
   if (!token) {
     console.log('You need to authenticate first. Run "anyflow auth".');
@@ -22,7 +21,7 @@ export async function deploy(network: string[]) {
 
   console.log("Creating deployment...");
 
-  const deployment = await createDeployment(network, token);
+  const deployment = await createDeployment(network, token, deterministicAddresses);
 
   console.log("Deployment created");
 
@@ -33,20 +32,24 @@ export async function deploy(network: string[]) {
     chain_data.map(async (chain) => {
       await writeDeploymentId(chain.id);
       
-      await updateChainDeploymentStatus(chain.id, 'DEPLOYING', token);
+      await updateChainDeploymentStatus(chain.id, 'deploying', token);
 
       try {
         await runCommand(network);
         
-        await updateChainDeploymentStatus(chain.id, 'FINISHED', token);
+        await updateChainDeploymentStatus(chain.id, 'finished', token);
       } catch (error) {
-        await updateChainDeploymentStatus(chain.id, 'FAILED', token);
+        await updateChainDeploymentStatus(chain.id, 'failed', token);
         console.error(`Deployment failed for chain ID ${chain.id}:`);
 
         failedChains.push(chain.chain_id);
       }
     })
-  );
+  ).catch((error) => {
+    console.error("Error deploying:", error);
+  }).finally(() => {
+    console.log("Deployment dispatched");
+  });
 
   console.log("Preparing artifact for deployment...");
 
@@ -64,14 +67,17 @@ function extractIds(deployment: any) {
 }
 
 export async function updateChainDeploymentStatus(chainId: number, status: string, token: string) {
-  const response = await axios.put(`${BACKEND_URL}/chain-deployments/${chainId}/status?status=${status}`, {},{
-    headers: {
+  const response = await axios.put(`${BACKEND_URL}/chain-deployments/${chainId}/status`, 
+    {
+      status: status
+    },
+    {
+      headers: {
       'Content-Type': 'application/json',
       "Authorization": `Bearer ${token}`
     },
   }).catch((error) => {
-    console.error(`Failed to update status for chain ID ${chainId}`);
-    return error;
+    throw error;
   });
 
   if (response.status < 200 || response.status >= 300) {

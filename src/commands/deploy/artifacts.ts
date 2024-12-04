@@ -22,15 +22,14 @@ export async function sendFile(zipFilePath: string, id: number, token: string) {
       })
       .then((res) => {
         console.log(res.data);
+        console.log("Artifacts uploaded successfully");
       })
       .catch((err) => {
         console.log(err.status);
         console.log(err.message);
-
+        console.log("Failed to upload artifacts");
         process.exit(1);
       });
-
-    console.log("Deployment successful:", response);
 
     // Clean up the zip file
     fs.unlinkSync(zipFilePath);

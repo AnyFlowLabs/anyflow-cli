@@ -22,7 +22,7 @@ async function ensureEnvFile() {
   if (!fs.existsSync(envPath)) {
     const key = crypto.randomBytes(32).toString('hex');
     
-    fs.writeFileSync(envPath, `ANYFLOW_ENCRYPTION_KEY=${key}\n`);
+    fs.writeFileSync(envPath, `ANYFLOW_ENCRYPTION_KEY=${key}`);
     fs.writeFileSync(envPath, `\nANYFLOW_RCP_BASE_URL=http://nest:3000`);
     
     console.log('Updated .env file with encryption key in the project root.');

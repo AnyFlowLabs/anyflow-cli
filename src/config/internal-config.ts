@@ -3,7 +3,7 @@ dotenv.config();
 
 export const RPC_BASE_URL = process.env.ANYFLOW_BASE_RPC_URL;
 export let CHAIN_DEPLOYMENT_ID = process.env.ANYFLOW_CHAIN_DEPLOYMENT_ID
-export const BACKEND_URL = "http://localhost:80/api"
+export const BACKEND_URL = "http://localhost/api"
 export const SUPPORTED_CHAINS = [11155111, 80002, 43113, 97, 421614, 4002, 84532, 11155420, 1313161555, 300, 338, 51, 50, 10200]
 
 // Proxy addresses
