@@ -2,6 +2,7 @@ import fs from 'fs/promises';
 import path from 'path';
 import readline from 'readline';
 import { getProjectRoot } from '../utils/getProjectRoot';
+import { name } from '../../package.json';
 
 const rl = readline.createInterface({
   input: process.stdin,
@@ -115,9 +116,9 @@ function updateHardhatConfig(content: string, type: string): string {
     if (!content.includes('anyflow-cli')) {
         // Add import statement based on type
         if (type === 'ts') {
-            content = `import AnyflowHardhatConfig from "anyflow-cli/hardhat.config";\n${content}`;
+            content = `import AnyflowHardhatConfig from "${name}/hardhat.config";\n${content}`;
         } else {
-            content = `const AnyflowHardhatConfig = require("anyflow-cli/hardhat.config");\n${content}`;
+            content = `const AnyflowHardhatConfig = require("${name}/hardhat.config");\n${content}`;
         }
     }
 

@@ -1,6 +1,7 @@
 import dotenv from 'dotenv';
 import readline from 'readline/promises';
 import { storeToken } from './store-token/store';
+import { handleAuthError } from '../error/auth-error';
 
 // Load environment variables from .env file
 dotenv.config();
@@ -33,7 +34,6 @@ export async function authenticate() {
   });
 
   try {
-    // Prompt user for API token
     const token = await rl.question("Please paste your API token here: ");
 
     if (token && token.trim()) {
@@ -43,7 +43,8 @@ export async function authenticate() {
       process.exit(1);
     }
   } catch (error: any) {
-    console.error("Error storing token");
+    handleAuthError(error);
+
     process.exit(1);
   } finally {
     rl.close();

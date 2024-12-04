@@ -1,6 +1,5 @@
 import axios from "axios";
-
-const BACKEND_URL = "https://api-staging.anyflow.pro/api";
+import { BACKEND_URL } from "../../../config/internal-config";
 
 // Make a request to get user information
 export async function getUserResponse(token:string) {
@@ -9,21 +8,21 @@ export async function getUserResponse(token:string) {
         'Authorization': `Bearer ${token}`
       }
     });
-  
+
     return response
 }
   
 // Verify the token by getting user information
 export async function getUser(token:string) {
+  const response = await getUserResponse(token);
   try {
-    const response = await getUserResponse(token);
-    
-    if (response.status === 200) {
+    if (response?.status === 200) {
       console.log("User authenticated.");
     }
 
     return response.data;
   } catch (error: any) {
+    console.log(error);
     if (error.response.status === 401) {
       console.log("Invalid or expired token. Please run 'anyflow auth' to authenticate. STATUS: " + error.response.status);
       process.exit(1);
