@@ -1,11 +1,49 @@
 import dotenv from 'dotenv';
 dotenv.config();
 
-export const RPC_BASE_URL = process.env.ANYFLOW_RPC_BASE_URL;
-export const CHAIN_DEPLOYMENT_ID = "11155111"
+export const SUPPORTED_CHAINS = [11155111, 80002, 43113, 97, 421614, 4002, 84532, 11155420, 1313161555, 300, 338, 51, 50, 10200]
+
+// Define valid environment types
+type Environment = 'development' | 'staging' | 'production';
+
+// Default to production values, can be overridden by environment variables
+const DEFAULT_CONFIG = {
+  BACKEND_URL: 'https://api.anyflow.pro',
+  RPC_BASE_URL: 'https://rpc.anyflow.pro',
+} as const;
+
+// Get environment with fallback to 'production'
+const ENV = (process.env.NODE_ENV || 'production') as Environment;
+
+// Environment-specific configurations
+const ENV_CONFIG = {
+  development: {
+    BACKEND_URL: 'http://localhost/api',
+    RPC_BASE_URL: 'http://nest:3000',
+  },
+  staging: {
+    BACKEND_URL: 'https://api.staging.anyflow.pro',
+    RPC_BASE_URL: 'https://rpc.staging.anyflow.pro',
+  },
+  production: DEFAULT_CONFIG,
+} as const;
+
+// Type guard to ensure ENV is a valid environment
+function isValidEnvironment(env: string): env is Environment {
+  return ['development', 'staging', 'production'].includes(env);
+}
+
+// Validate environment
+if (!isValidEnvironment(ENV)) {
+  throw new Error(`Invalid environment: ${ENV}`);
+}
+
+// Export configured values with environment variable overrides
+export const RPC_BASE_URL = process.env.ANYFLOW_BASE_RPC_URL || ENV_CONFIG[ENV].RPC_BASE_URL;
+export const BACKEND_URL = process.env.ANYFLOW_BACKEND_URL || ENV_CONFIG[ENV].BACKEND_URL;
+export let CHAIN_DEPLOYMENT_ID = process.env.ANYFLOW_CHAIN_DEPLOYMENT_ID;
 
 // Proxy addresses
-
 // Note: we use these addresses only as proxies, so there's no risk of it being public
 // for more information visit: https://docs.anyflow.pro/docs/how_it_works
 

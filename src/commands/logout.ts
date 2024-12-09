@@ -20,12 +20,12 @@ export async function logout() {
   try {
     if (fs.existsSync(envPath)) {
       const envConfig = dotenv.parse(fs.readFileSync(envPath));
-      delete envConfig.ENCRYPTION_KEY;
+      delete envConfig.ANYFLOW_ENCRYPTION_KEY;
       const newEnvContent = Object.entries(envConfig)
         .map(([key, value]) => `${key}=${value}`)
         .join('\n');
       fs.writeFileSync(envPath, newEnvContent);
-      console.log('ENCRYPTION_KEY removed from .env file.');
+      console.log('ANYFLOW_ENCRYPTION_KEY removed from .env file.');
     }
 
     if (fs.existsSync(keyFilePath)) {
