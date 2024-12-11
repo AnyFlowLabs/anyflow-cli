@@ -65,10 +65,7 @@ function extractIds(deployment: any) {
 }
 
 export async function updateChainDeploymentStatus(chainId: number, status: string) {
-  const response = await axios.put(`api/chain-deployments/${chainId}/status`,
-    {
-      status: status
-    })
+  const response = await axios.put(`api/chain-deployments/${chainId}/status`, { status })
 
   if (response.status < 200 || response.status >= 300) {
     console.error(`Failed to update status for chain ID ${chainId}:`,);
