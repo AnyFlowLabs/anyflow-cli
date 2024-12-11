@@ -4,6 +4,7 @@ import fs from 'fs/promises';
 import keytar from 'keytar';
 import { decrypt, encrypt } from './encrypt';
 import { getUser } from '../api/user';
+import { memoize } from 'lodash';
 
 // Constants for the application
 export const SERVICE_NAME = "AnyFlowCLI";
@@ -12,8 +13,8 @@ export const ACCOUNT_NAME = "apiToken";
 // Store the token securely
 export async function storeToken(token: string) {
   // Verify the token by getting user info
-  await getUser(token);  
-  
+  await getUser(token);
+
   try {
     // Attempt to store the token using the system keychain
     await keytar.setPassword(SERVICE_NAME, ACCOUNT_NAME, token);
@@ -29,7 +30,7 @@ export async function storeToken(token: string) {
     await storeTokenInFile(encryptedToken);
   }
 }
-  
+
 // Store the encrypted token in a file
 export async function storeTokenInFile(encryptedToken: string) {
   const configDir = path.join(os.homedir(), '.anyflow');
@@ -38,7 +39,7 @@ export async function storeTokenInFile(encryptedToken: string) {
   try {
     // Create the config directory if it doesn't exist
     await fs.mkdir(configDir, { recursive: true });
-    
+
     // Write the encrypted token to the file with restricted permissions
     await fs.writeFile(tokenFile, encryptedToken, { mode: 0o600 });
 
@@ -49,7 +50,7 @@ export async function storeTokenInFile(encryptedToken: string) {
 }
 
 // Retrieve the stored token
-export async function getToken(): Promise<string | null> {
+export const getToken = memoize(async function (): Promise<string | null> {
   // First, try to get the token from the system keychain
   const token = await keytar.getPassword(SERVICE_NAME, ACCOUNT_NAME).catch(() => {
     console.log("Token not found in keychain, trying file...");
@@ -71,8 +72,19 @@ export async function getToken(): Promise<string | null> {
       console.error("No token found. Please authenticate first.");
       process.exit(1);
     }
-    
+
     console.error(`Failed to read token from file: ${error}`);
+    process.exit(1);
+  }
+})
+
+export async function isAuthenticated(): Promise<boolean> {
+  return (await getToken()) !== null;
+}
+
+export async function requireAuthentication(): Promise<void> {
+  if (!(await isAuthenticated())) {
+    console.log('You need to authenticate first. Run "anyflow auth".');
     process.exit(1);
   }
 }

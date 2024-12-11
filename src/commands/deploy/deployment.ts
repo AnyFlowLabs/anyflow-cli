@@ -1,9 +1,8 @@
 import fs from 'fs';
-import path from "path"
-import axios from "axios"
+import path from "path";
 import { getProjectRoot } from '../../utils/getProjectRoot';
-import { BACKEND_URL } from "../../config/internal-config"
-import { aliasesToChainId, aliasToChainId, getChainAliases, getChains, isChainAvailable } from './chains';
+import { aliasesToChainId, getChainAliases, isChainAvailable } from './chains';
+import axios from '../../utils/axios';
 
 type Chains = {
   chain_id: number
@@ -45,7 +44,7 @@ async function validateDeployment(network: string[]) {
   return { chainsArray }
 }
 
-export async function createDeployment(network: string[], token: string, deterministicAddresses: boolean) {
+export async function createDeployment(network: string[], deterministicAddresses: boolean) {
   const { chainsArray } = await validateDeployment(network)
 
   const nodeVersion = await getNodeVersion()
@@ -58,20 +57,10 @@ export async function createDeployment(network: string[], token: string, determi
     deterministic_addresses: deterministicAddresses
   }
 
-  const response = await axios.post(`${BACKEND_URL}/deployments?cli=true`, deployment, {
-    headers: {
-      'Content-Type': 'application/json',
-      "Authorization": `Bearer ${token}`
-    }
-  }).then(res => {
-    return res.data
-  }).catch(err => {
-    console.log(err)
-    console.log("status", err.status)
-    console.log("message:", err.message)
-
-    process.exit(1)
-  })
+  const response = await axios.post(`api/deployments?cli=true`, deployment)
+    .then(res => {
+      return res.data
+    })
 
   return response
 }
@@ -96,7 +85,7 @@ async function getNodeVersion() {
   return allowedVersions.includes(extractedVersion) ? extractedVersion : defaultVersion;
 }
 
-export async function writeDeploymentId(id: string | number) {
+export async function writeChainDeploymentId(id: string | number) {
   const rootDir = await getProjectRoot();
   const envPath = path.join(rootDir, '.env');
   let envContent = fs.readFileSync(envPath, 'utf8');

@@ -1,12 +1,11 @@
-import axios from "axios";
 import fs from "fs";
 import FormData from "form-data";
 import AdmZip from "adm-zip";
 import path from "path";
 import { getProjectRoot } from "../../utils/getProjectRoot";
-import { BACKEND_URL } from "../../config/internal-config";
+import axios from "../../utils/axios";
 
-export async function sendFile(zipFilePath: string, id: number, token: string) {
+export async function sendFile(zipFilePath: string, id: number) {
   try {
     // Prepare form data
     const form = new FormData();
@@ -14,10 +13,9 @@ export async function sendFile(zipFilePath: string, id: number, token: string) {
 
     // Send the zipped artifact
     const response = await axios
-      .post(`${BACKEND_URL}/deployments/${id}/upload-artifacts`, form, {
+      .post(`api/deployments/${id}/upload-artifacts`, form, {
         headers: {
           ...form.getHeaders(),
-          Authorization: `Bearer ${token}`,
         },
       })
       .then((res) => {

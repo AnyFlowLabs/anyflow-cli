@@ -1,10 +1,9 @@
-import { getToken } from "../auth/store-token/store";
-import { writeDeploymentId } from "./deployment";
+import { requireAuthentication } from "../auth/store-token/store";
+import { writeChainDeploymentId } from "./deployment";
 import { sendFile, zipFile } from "./artifacts";
 import { createDeployment } from "./deployment";
 import { runCommand } from "./command";
-import axios from "axios";
-import { BACKEND_URL, RPC_BASE_URL } from "../../config/internal-config";
+import axios from "../../utils/axios";
 
 export async function deploy(network: string[], deterministicAddresses: boolean = false) {
   if (!network || network.length < 1) {
@@ -12,54 +11,52 @@ export async function deploy(network: string[], deterministicAddresses: boolean 
     process.exit(1);
   }
 
-  let token = await getToken();
+  await requireAuthentication();
 
-  if (!token) {
-    console.log('You need to authenticate first. Run "anyflow auth".');
-    return;
-  }
+  // TODO: check if the user is inside a valid project
+  // await requireProject();
 
   console.log();
   console.log("Creating deployment...");
 
-  const deployment = await createDeployment(network, token, deterministicAddresses);
+  const deployment = await createDeployment(network, deterministicAddresses);
 
   console.log("Deployment created");
+
+  console.log("Preparing artifacts for deployment...");
+
+  const zipFilePath = await zipFile();
+  await sendFile(zipFilePath, deployment.data.id);
+
+  console.log("Artifacts sent");
 
   const chain_data: { id: number, chain_id: number }[] = extractIds(deployment);
   const failedChains: number[] = [];
 
-  await Promise.all(
-    chain_data.map(async (chain) => {
-      await writeDeploymentId(chain.id);
+  console.log("Deploying chains...");
 
-      await updateChainDeploymentStatus(chain.id, 'deploying', token);
+  for (const chain of chain_data) {
+    console.log(`Deploying chain ID ${chain.chain_id}...`);
+    await writeChainDeploymentId(chain.id);
 
-      try {
-        await runCommand(network);
+    await updateChainDeploymentStatus(chain.id, 'deploying');
 
-        await updateChainDeploymentStatus(chain.id, 'finished', token);
-      } catch (error) {
-        await updateChainDeploymentStatus(chain.id, 'failed', token);
-        console.error(`Deployment failed for chain ID ${chain.id}:`);
+    try {
+      await runCommand(network);
 
-        failedChains.push(chain.chain_id);
-      }
-    })
-  ).catch((error) => {
-    console.error("Error deploying:", error);
-  }).finally(() => {
-    console.log("Deployment dispatched");
-  });
+      await updateChainDeploymentStatus(chain.id, 'finished');
+    } catch (error) {
+      await updateChainDeploymentStatus(chain.id, 'failed');
+      console.error(`Deployment failed for chain ID ${chain.id}:`);
 
-  console.log("Preparing artifact for deployment...");
-
-  const zipFilePath = await zipFile();
-
-  await sendFile(zipFilePath, deployment.data.id, token);
+      failedChains.push(chain.chain_id);
+    }
+  }
 
   if (failedChains.length > 0) {
     console.error("Failed chains, try again later:", failedChains);
+  } else {
+    console.log("Deployment dispatched");
   }
 }
 
@@ -67,19 +64,11 @@ function extractIds(deployment: any) {
   return deployment.data.chain_deployments.map((chains: any) => ({ id: chains.id, chain_id: chains.chain_id }));
 }
 
-export async function updateChainDeploymentStatus(chainId: number, status: string, token: string) {
-  const response = await axios.put(`${BACKEND_URL}/chain-deployments/${chainId}/status`,
+export async function updateChainDeploymentStatus(chainId: number, status: string) {
+  const response = await axios.put(`api/chain-deployments/${chainId}/status`,
     {
       status: status
-    },
-    {
-      headers: {
-        'Content-Type': 'application/json',
-        "Authorization": `Bearer ${token}`
-      },
-    }).catch((error) => {
-      throw error;
-    });
+    })
 
   if (response.status < 200 || response.status >= 300) {
     console.error(`Failed to update status for chain ID ${chainId}:`,);
