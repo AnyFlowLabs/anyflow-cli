@@ -8,15 +8,16 @@ import { deploy } from "./commands/deploy/deploy";
 import { checkAuth } from "./commands/auth/check-auth";
 import { logout } from './commands/logout';
 import { fix } from './commands/deploy/fix';
-import { version } from '../package.json';
-import { printHeader } from "./utils/header";
+import packageJson from '../package.json';
+// import { printHeader } from "./utils/header";
 
 async function main() {
+  const version = packageJson.version;
   console.log(`Starting AnyFlow CLI v${version}...`);
 
   const program = new Command();
 
-  printHeader();
+  // printHeader();
 
   try {
     program
@@ -44,10 +45,12 @@ async function main() {
       .description("Deploy the project by calling authenticated backend routes")
       .option("--networks <network...>", "Specify the network(s) to deploy to")
       .option("--deterministic-addresses", "Use deterministic addresses for deployment")
+      .option("-da", "Use deterministic addresses for deployment")
       .action((options) => {
         console.log("Parsed networks:", options.networks);
-        console.log("Deterministic addresses option:", options.deterministicAddresses || false);
-        return deploy(options.networks, options.deterministicAddresses || false);
+        const da = options.deterministicAddresses || options.da || false;
+        console.log("Deterministic addresses option:", da);
+        return deploy(options.networks, da);
       });
 
     program

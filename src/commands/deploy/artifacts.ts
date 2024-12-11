@@ -37,10 +37,18 @@ export async function sendFile(zipFilePath: string, id: number) {
 }
 
 export async function zipFile() {
+  // Check if artifacts folder exists
+  const projectRoute = await getProjectRoot();
+  const artifactsFolderPath = path.join(projectRoute, "artifacts");
+  if (!fs.existsSync(artifactsFolderPath)) {
+    console.error("Artifacts folder not found. Did you forget to compile the project?");
+    process.exit(1);
+  }
+
   try {
     // Create a zip file
     const zip = new AdmZip();
-    const projectRoute = await getProjectRoot();
+
     // Add all files from the artifacts folder
     const artifactsFolderPath = path.join(projectRoute, "artifacts");
     zip.addLocalFolder(artifactsFolderPath);

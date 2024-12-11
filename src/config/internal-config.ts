@@ -1,48 +1,5 @@
-import dotenv from 'dotenv';
-dotenv.config();
-
 // Define default supported chains. (Note: these are only used if the API call fails)
 export const SUPPORTED_CHAINS = [11155111, 80002, 43113, 97, 421614, 4002, 84532, 11155420, 1313161555, 300, 338, 51, 50, 10200]
-
-// Define valid environment types
-type Environment = 'development' | 'staging' | 'production';
-
-// Default to production values, can be overridden by environment variables
-const DEFAULT_CONFIG = {
-  BACKEND_URL: 'https://api.anyflow.pro',
-  RPC_BASE_URL: 'https://rpc.anyflow.pro',
-} as const;
-
-// Get environment with fallback to 'production'
-const ENV = (process.env.NODE_ENV || 'production') as Environment;
-
-// Environment-specific configurations
-const ENV_CONFIG = {
-  development: {
-    BACKEND_URL: 'http://localhost/api',
-    RPC_BASE_URL: 'http://nest:3000',
-  },
-  staging: {
-    BACKEND_URL: 'https://api.staging.anyflow.pro',
-    RPC_BASE_URL: 'https://rpc.staging.anyflow.pro',
-  },
-  production: DEFAULT_CONFIG,
-} as const;
-
-// Type guard to ensure ENV is a valid environment
-function isValidEnvironment(env: string): env is Environment {
-  return ['development', 'staging', 'production'].includes(env);
-}
-
-// Validate environment
-if (!isValidEnvironment(ENV)) {
-  throw new Error(`Invalid environment: ${ENV}`);
-}
-
-// Export configured values with environment variable overrides
-export const RPC_BASE_URL = process.env.ANYFLOW_BASE_RPC_URL || ENV_CONFIG[ENV].RPC_BASE_URL;
-export const BACKEND_URL = process.env.ANYFLOW_BACKEND_URL || ENV_CONFIG[ENV].BACKEND_URL;
-export let CHAIN_DEPLOYMENT_ID = process.env.ANYFLOW_CHAIN_DEPLOYMENT_ID;
 
 // Proxy addresses
 // Note: we use these addresses only as proxies, so there's no risk of it being public
@@ -68,3 +25,5 @@ export const PK8 = '0xf2554f0416dcd829a7cb4512c96fc325e98831ac33c9c12d00f9a0a225
 export const PK9 = '0xbf6f9db044a1c74f6930ef2361a744a713016aa617568e81fb6e104f30a87e2a'
 // 0x8B4Af965a6e96C61B80eFCe28c049e394b37Ee3b
 export const PK10 = '0x20dc9c239f6e55b1e96e1c6c073c67889867819f772713bd065f0e5575166b86'
+
+export const accounts = [PK1, PK2, PK3, PK4, PK5, PK6, PK7, PK8, PK9, PK10]

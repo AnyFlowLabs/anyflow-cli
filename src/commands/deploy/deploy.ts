@@ -28,8 +28,6 @@ export async function deploy(network: string[], deterministicAddresses: boolean 
   const zipFilePath = await zipFile();
   await sendFile(zipFilePath, deployment.data.id);
 
-  console.log("Artifacts sent");
-
   const chain_data: { id: number, chain_id: number }[] = extractIds(deployment);
   const failedChains: number[] = [];
 
@@ -42,7 +40,7 @@ export async function deploy(network: string[], deterministicAddresses: boolean 
     await updateChainDeploymentStatus(chain.id, 'deploying');
 
     try {
-      await runCommand(network);
+      await runCommand(chain.chain_id.toString());
 
       await updateChainDeploymentStatus(chain.id, 'finished');
     } catch (error) {

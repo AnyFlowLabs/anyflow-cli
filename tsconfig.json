@@ -1,7 +1,8 @@
 {
   "compilerOptions": {
-    "module": "NodeNext",
-    "moduleResolution": "NodeNext",
+    "target": "ES6",
+    "module": "ESNext",
+    "moduleResolution": "node",
     "allowJs": false,
     "checkJs": false,
     "outDir": "./dist",
@@ -18,5 +19,5 @@
     "declaration": true
   },
   "include": ["src/**/*"],
-  "exclude": ["artifacts", "dist", "build", "node_modules"] 
+  "exclude": ["dist", "node_modules"] 
 }

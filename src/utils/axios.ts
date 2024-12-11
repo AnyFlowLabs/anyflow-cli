@@ -1,9 +1,8 @@
 import axios from "axios";
-import { BACKEND_URL } from "../config/internal-config";
 import { getToken } from "../commands/auth/store-token/store";
 
 const instance = axios.create({
-    baseURL: BACKEND_URL,
+    baseURL: process.env.ANYFLOW_BACKEND_URL,
     headers: {
         'Content-Type': 'application/json',
     },

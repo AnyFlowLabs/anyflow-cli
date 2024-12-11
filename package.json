@@ -1,7 +1,7 @@
 {
   "name": "anyflow-cli-test",
   "description": "CLI for AnyFlow operations",
-  "version": "1.0.6",
+  "version": "1.0.8",
   "main": "dist/cli.js",
   "bin": {
     "anyflow": "./dist/cli.js"
@@ -11,15 +11,14 @@
   },
   "scripts": {
     "test": "echo \"Warn: no test specified\" && exit 0",
-    "build": "tsc",
-    "start": "node -r dotenv/config dist/cli.js help",
-    "anyflow": "node -r dotenv/config dist/cli.js",
-    "build:dev": "NODE_ENV=development npm run build",
-    "build:staging": "NODE_ENV=staging npm run build",
-    "build:prod": "NODE_ENV=production npm run build",
-    "publish:dev": "npm run build:dev && npm publish --tag dev",
+    "start": "node dist/cli.js help",
+    "anyflow": "node dist/cli.js",
+    "build:development": "webpack --env ENV=development",
+    "build:staging": "webpack --env ENV=staging",
+    "build:production": "webpack --env ENV=production",
+    "publish:development": "npm run build:development && npm publish --tag dev",
     "publish:staging": "npm run build:staging && npm publish --tag beta",
-    "publish:prod": "npm run build:prod && npm publish --tag latest"
+    "publish:production": "npm run build:production && npm publish --tag latest"
   },
   "homepage": "anyflow.pro",
   "keywords": [
@@ -59,7 +58,12 @@
     "@types/node": "^22.5.3",
     "@types/openurl": "^1.0.3",
     "@types/pkg-dir": "^2.0.1",
+    "cross-env": "^7.0.3",
+    "dotenv-webpack": "^8.1.0",
+    "ts-loader": "^9.5.1",
     "ts-node": "^10.9.2",
-    "typescript": "^5.5.4"
+    "typescript": "^5.6.3",
+    "webpack": "^5.97.1",
+    "webpack-cli": "^5.1.4"
   }
 }

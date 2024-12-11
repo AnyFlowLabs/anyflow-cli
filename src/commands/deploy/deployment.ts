@@ -92,12 +92,12 @@ export async function writeChainDeploymentId(id: string | number) {
 
   const chainDeploymentIdLine = `ANYFLOW_CHAIN_DEPLOYMENT_ID=${id}`;
 
-  if (!envContent.includes("CHAIN_DEPLOYMENT_ID")) {
+  if (!envContent.includes("ANYFLOW_CHAIN_DEPLOYMENT_ID")) {
     fs.appendFileSync(envPath, `\n${chainDeploymentIdLine}`);
-    console.log('Added ANYFLOW_CHAIN_DEPLOYMENT_ID to existing .env file in the project root.');
+    console.log(`Added ANYFLOW_CHAIN_DEPLOYMENT_ID=${id} to existing .env file in the project root.`);
   } else {
     const updatedEnvContent = envContent.replace(/ANYFLOW_CHAIN_DEPLOYMENT_ID=.*/g, chainDeploymentIdLine);
     fs.writeFileSync(envPath, updatedEnvContent);
-    console.log('Overwritten ANYFLOW_CHAIN_DEPLOYMENT_ID in the .env file in the project root.');
+    console.log(`Overwritten ANYFLOW_CHAIN_DEPLOYMENT_ID=${id} in the .env file in the project root.`);
   }
 }

@@ -2,11 +2,13 @@ import fs from 'fs/promises';
 import path from 'path';
 import readline from 'readline';
 import { getProjectRoot } from '../utils/getProjectRoot';
-import { name } from '../../package.json';
+import packageJson from '../../package.json';
+
+const name = packageJson.name;
 
 const rl = readline.createInterface({
-  input: process.stdin,
-  output: process.stdout
+    input: process.stdin,
+    output: process.stdout
 });
 
 type HardhatConf = {
@@ -16,10 +18,10 @@ type HardhatConf = {
 
 export async function install() {
     console.log('Performing local file manipulation...');
-    
+
     // Find the hardhat.config.ts file
     let hardhatConfig: HardhatConf = await findHardhatConfig()
-    
+
     if (hardhatConfig.path.length < 1) {
         hardhatConfig = await promptForConfigPath();
     }
@@ -44,7 +46,7 @@ export async function install() {
 async function findHardhatConfig(dir = process.cwd()): Promise<{ path: string; type: string }> {
     const files = await fs.readdir(dir);
     const configFile = files.find(file => file === 'hardhat.config.ts' || file === 'hardhat.config.js');
-    
+
     if (configFile) {
         const type = configFile.endsWith('.ts') ? 'ts' : 'js';
         return { path: path.join(dir, configFile), type };
@@ -54,7 +56,7 @@ async function findHardhatConfig(dir = process.cwd()): Promise<{ path: string; t
 
     if (parentDir === dir) {
         console.warn('Could not find hardhat.config.ts(js) file automatically.');
-        return {path: "", type: "js"};
+        return { path: "", type: "js" };
     }
 
     return findHardhatConfig(parentDir);
@@ -69,7 +71,7 @@ async function promptForConfigPath(): Promise<HardhatConf> {
                 console.error('Could not find project root directory.');
 
                 rl.close();
-                
+
                 process.exit(1);
             }
 
@@ -83,29 +85,29 @@ async function promptForConfigPath(): Promise<HardhatConf> {
                 });
 
                 fullPath = path.resolve(fullPath, `hardhat.config.${extension}`);
-            }else {
+            } else {
                 extension = fullPath.includes("hardhat.config.ts") ? "ts" : "js"
             }
-            
+
             try {
                 const stats = await fs.stat(fullPath);
 
                 if (stats.isFile()) {
                     rl.close();
-                
-                    resolve({path: fullPath, type: extension});
+
+                    resolve({ path: fullPath, type: extension });
                 } else {
                     console.error('The specified path is not a file.');
                     rl.close();
-                
-                    resolve({path: "", type: ""});
+
+                    resolve({ path: "", type: "" });
                 }
             } catch (error) {
                 console.error('The specified file does not exist or is not accessible.');
-                
+
                 rl.close();
-                
-                resolve({path: "", type: ""});
+
+                resolve({ path: "", type: "" });
             }
         });
     });

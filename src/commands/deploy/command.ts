@@ -1,10 +1,10 @@
 import { spawn } from "child_process";
 
-export async function runCommand(network: string[]) {
+export async function runCommand(network: string) {
   console.log("Starting deployment...");
 
   const command = 'npm';
-  const args = ['run', 'deploy', '--', '--network', ...network];
+  const args = ['run', 'deploy', '--', '--network', network];
 
   console.log(`Running command: ${command} ${args.join(' ')}`);
 

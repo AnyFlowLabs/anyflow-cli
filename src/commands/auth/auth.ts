@@ -1,17 +1,15 @@
-import dotenv from 'dotenv';
 import readline from 'readline/promises';
-import { storeToken } from './store-token/store';
+import { isAuthenticated, storeToken } from './store-token/store';
 import { handleAuthError } from '../error/auth-error';
-
-// Load environment variables from .env file
-dotenv.config();
-
-// Constants for the application
-const FRONTEND_URL = "https://app-staging.anyflow.pro";
 
 // Main authentication function
 export async function authenticate() {
-  const tokenUrl = `${FRONTEND_URL}/dev`;
+  if (await isAuthenticated()) {
+    console.log("You are already authenticated. If you want to re-authenticate, please run 'anyflow logout' first.");
+    process.exit(0);
+  }
+
+  const tokenUrl = `${process.env.ANYFLOW_FRONTEND_URL}/settings/api`;
 
   console.log("Opening your browser to authenticate...");
   console.log("URL:", tokenUrl);
