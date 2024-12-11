@@ -19,24 +19,25 @@ export async function deploy(network: string[], deterministicAddresses: boolean 
     return;
   }
 
+  console.log();
   console.log("Creating deployment...");
 
   const deployment = await createDeployment(network, token, deterministicAddresses);
 
   console.log("Deployment created");
 
-  const chain_data: {id: number, chain_id: number}[] = extractIds(deployment);
+  const chain_data: { id: number, chain_id: number }[] = extractIds(deployment);
   const failedChains: number[] = [];
 
   await Promise.all(
     chain_data.map(async (chain) => {
       await writeDeploymentId(chain.id);
-      
+
       await updateChainDeploymentStatus(chain.id, 'deploying', token);
 
       try {
         await runCommand(network);
-        
+
         await updateChainDeploymentStatus(chain.id, 'finished', token);
       } catch (error) {
         await updateChainDeploymentStatus(chain.id, 'failed', token);
@@ -57,28 +58,28 @@ export async function deploy(network: string[], deterministicAddresses: boolean 
 
   await sendFile(zipFilePath, deployment.data.id, token);
 
-  if(failedChains.length > 0) {
+  if (failedChains.length > 0) {
     console.error("Failed chains, try again later:", failedChains);
   }
 }
 
 function extractIds(deployment: any) {
-  return deployment.data.chain_deployments.map((chains: any) => ({id: chains.id, chain_id: chains.chain_id}));
+  return deployment.data.chain_deployments.map((chains: any) => ({ id: chains.id, chain_id: chains.chain_id }));
 }
 
 export async function updateChainDeploymentStatus(chainId: number, status: string, token: string) {
-  const response = await axios.put(`${BACKEND_URL}/chain-deployments/${chainId}/status`, 
+  const response = await axios.put(`${BACKEND_URL}/chain-deployments/${chainId}/status`,
     {
       status: status
     },
     {
       headers: {
-      'Content-Type': 'application/json',
-      "Authorization": `Bearer ${token}`
-    },
-  }).catch((error) => {
-    throw error;
-  });
+        'Content-Type': 'application/json',
+        "Authorization": `Bearer ${token}`
+      },
+    }).catch((error) => {
+      throw error;
+    });
 
   if (response.status < 200 || response.status >= 300) {
     console.error(`Failed to update status for chain ID ${chainId}:`,);

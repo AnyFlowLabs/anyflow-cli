@@ -6,20 +6,20 @@ import { getProjectRoot } from '../utils/getProjectRoot';
 import { BACKEND_URL, RPC_BASE_URL } from '../config/internal-config';
 
 export async function init() {
-    await ensureEnvFile();
-    const rootDir = await getProjectRoot();
-    dotenv.config({ path: path.join(rootDir, '.env') });
-    
-    if (!process.env.ANYFLOW_ENCRYPTION_KEY) {
-      console.error('ANYFLOW_ENCRYPTION_KEY is not set in the environment variables.');
-      process.exit(1);
-    }    
+  await ensureEnvFile();
+  const rootDir = await getProjectRoot();
+  dotenv.config({ path: path.join(rootDir, '.env') });
+
+  if (!process.env.ANYFLOW_ENCRYPTION_KEY) {
+    console.error('ANYFLOW_ENCRYPTION_KEY is not set in the environment variables.');
+    process.exit(1);
+  }
 }
 
 async function ensureEnvFile() {
   const rootDir = await getProjectRoot();
   const envPath = path.join(rootDir, '.env');
-  
+
   if (!fs.existsSync(envPath)) {
     const key = crypto.randomBytes(32).toString('hex');
     const envContent = [
@@ -28,7 +28,7 @@ async function ensureEnvFile() {
       'ANYFLOW_BASE_RPC_URL=http://nest:3000',
       'ANYFLOW_BACKEND_URL=http://localhost/api',
     ].join('\n');
-    
+
     fs.writeFileSync(envPath, envContent);
     console.log('Created .env file with default development configuration.');
   } else {
@@ -59,13 +59,13 @@ async function checkEnvironmentVars(envContent: string, envPath: string) {
 }
 
 async function checkKey(envContent: string, envPath: string) {
-  if (!envContent.includes('ANYFLOW_ENCRYPTION_KEY=')) {
-    const key = crypto.randomBytes(32).toString('hex');
-    
-    fs.appendFileSync(envPath, `\nANYFLOW_ENCRYPTION_KEY=${key}\n`);
-    
-    console.log('Added ANYFLOW_ENCRYPTION_KEY to existing .env file in the project root.');
-  } else {
+  if (envContent.includes('ANYFLOW_ENCRYPTION_KEY=')) {
     console.warn('ANYFLOW_ENCRYPTION_KEY already exists in .env file.');
+    return
   }
+
+  const key = crypto.randomBytes(32).toString('hex');
+  fs.appendFileSync(envPath, `\nANYFLOW_ENCRYPTION_KEY=${key}\n`);
+
+  console.log('Added ANYFLOW_ENCRYPTION_KEY to existing .env file in the project root.');
 }

@@ -11,6 +11,9 @@ importers:
       '@types/adm-zip':
         specifier: ^0.5.6
         version: 0.5.6
+      '@types/lodash':
+        specifier: ^4.17.13
+        version: 4.17.13
       adm-zip:
         specifier: ^0.5.16
         version: 0.5.16
@@ -32,6 +35,9 @@ importers:
       keytar:
         specifier: ^7.9.0
         version: 7.9.0
+      lodash:
+        specifier: ^4.17.21
+        version: 4.17.21
       open:
         specifier: ^10.1.0
         version: 10.1.0
@@ -289,6 +295,9 @@ packages:
 
   '@types/bn.js@5.1.6':
     resolution: {integrity: sha512-Xh8vSwUeMKeYYrj3cX4lGQgFSF/N03r+tv4AiLl1SucqV+uTQpxRcnM8AkXKHwYP9ZPXOYXRr2KPXpVlIvqh9w==}
+
+  '@types/lodash@4.17.13':
+    resolution: {integrity: sha512-lfx+dftrEZcdBPczf9d0Qv0x+j/rfNCMuC6OcfXmO8gkfeNAY88PgKUbvG56whcN23gc27yenwF6oJZXGFpYxg==}
 
   '@types/lru-cache@5.1.1':
     resolution: {integrity: sha512-ssE3Vlrys7sdIzs5LOxCzTVMsU7i9oa/IaW92wF32JFb3CVczqOkru2xspuKczHEbG3nvmPY7IFqVmGGHdNbYw==}
@@ -1612,6 +1621,8 @@ snapshots:
   '@types/bn.js@5.1.6':
     dependencies:
       '@types/node': 22.5.3
+
+  '@types/lodash@4.17.13': {}
 
   '@types/lru-cache@5.1.1': {}
 
