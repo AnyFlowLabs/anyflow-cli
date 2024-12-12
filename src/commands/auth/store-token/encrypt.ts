@@ -1,15 +1,15 @@
 import crypto from 'crypto';
 
 // [TEMP] Disabling encryption for now [AF-281]
-const ANYFLOW_ENCRYPTION_KEY = '123'
+const ANYFLOW_ENCRYPTION_KEY = '123';
 
 // Encrypt the token using AES-256-CBC
 export function encrypt(text: string): string {
-  return text
+  return text;
 
   // Check if encryption key is set
   if (!ANYFLOW_ENCRYPTION_KEY) {
-    console.error("ANYFLOW_ENCRYPTION_KEY is not set in the environment variables, run `anyflow init` to set it up.");
+    console.error('ANYFLOW_ENCRYPTION_KEY is not set in the environment variables, run `anyflow init` to set it up.');
     process.exit(1);
   }
 
@@ -26,11 +26,11 @@ export function encrypt(text: string): string {
 
 // Decrypt the token using AES-256-CBC
 export function decrypt(text: string): string {
-  return text
+  return text;
 
   // Check if encryption key is set
   if (!ANYFLOW_ENCRYPTION_KEY) {
-    console.error("ANYFLOW_ENCRYPTION_KEY is not set in the environment variables, run `anyflow init` to set it up.");
+    console.error('ANYFLOW_ENCRYPTION_KEY is not set in the environment variables, run `anyflow init` to set it up.');
     process.exit(1);
   }
 

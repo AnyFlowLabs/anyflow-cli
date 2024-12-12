@@ -1,4 +1,4 @@
-import { spawn } from "child_process";
+import { spawn } from 'child_process';
 
 type CommandReturnType = {
   exitCode: number;
@@ -14,7 +14,7 @@ type CommandReturnType = {
  * was successful or not.
  */
 export async function runCommand(command: string, args: string[]): Promise<CommandReturnType> {
-  let child
+  let child;
   try {
     child = spawn(command, args, { shell: true });
   } catch (err: unknown) {

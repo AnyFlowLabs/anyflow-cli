@@ -1,5 +1,5 @@
-import axios from "./axios";
+import axios from './axios';
 
 export function checkConnection() {
-    return axios.get('/up');
+  return axios.get('/up');
 }

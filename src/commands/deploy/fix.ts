@@ -1,12 +1,12 @@
-import { getToken } from "../auth/store-token/store";
+import { getToken } from '../auth/store-token/store';
 import { updateChainDeploymentStatus } from './deploy';
 
 export async function fix() {
   const fs = require('fs');
-  console.log("Fixing failed deployments...");
-  const path = `anyflow_failed_deployments.txt`;
+  console.log('Fixing failed deployments...');
+  const path = 'anyflow_failed_deployments.txt';
 
-  let token = await getToken();
+  const token = await getToken();
 
   const failedDeployments: { chainId: number, status: string }[] = [];
 

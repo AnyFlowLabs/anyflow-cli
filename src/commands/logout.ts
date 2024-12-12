@@ -1,7 +1,9 @@
 import fs from 'fs';
 import path from 'path';
 import os from 'os';
+
 import dotenv from 'dotenv';
+
 // import keytar from 'keytar';
 // import { SERVICE_NAME, ACCOUNT_NAME } from './auth/store-token/store';
 import { getProjectRoot } from '../utils/getProjectRoot';
@@ -29,7 +31,7 @@ export async function logout() {
     }
 
     if (fs.existsSync(keyFilePath)) {
-      fs.rmSync(keyFilePath, { recursive: true })
+      fs.rmSync(keyFilePath, { recursive: true });
       console.log('Encryption key file deleted.');
     } else {
       console.warn('Encryption key file not found.');

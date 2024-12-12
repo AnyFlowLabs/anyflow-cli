@@ -1,15 +1,15 @@
-import axios from "../../../utils/axios";
+import axios from '../../../utils/axios';
 
 // Make a request to get user information
 export async function getUserResponse(token?: string) {
-  const response = await axios.get(`api/user`,
+  const response = await axios.get('api/user',
     {
       headers: token ? {
         Authorization: `Bearer ${token}`,
       } : {},
     }
   );
-  return response
+  return response;
 }
 
 // Verify the token by getting user information

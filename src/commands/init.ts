@@ -1,5 +1,6 @@
 import fs from 'fs';
 import path from 'path';
+
 import { getProjectRoot } from '../utils/getProjectRoot';
 import { getToken } from './auth/store-token/store';
 
@@ -16,7 +17,7 @@ async function ensureEnvFile() {
     fs.writeFileSync(envPath, '');
   }
 
-  let envContent = fs.readFileSync(envPath, 'utf8');
+  const envContent = fs.readFileSync(envPath, 'utf8');
   // [TEMP] Disabling encryption for now [AF-281]
   // await checkKey(envContent, envPath);
   await checkEnvironmentVars(envContent, envPath);

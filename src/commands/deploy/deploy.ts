@@ -1,16 +1,15 @@
-import { requireAuthentication } from "../auth/store-token/store";
-import { writeChainDeploymentId } from "./deployment";
-import { sendFile, zipFile } from "./artifacts";
-import { createDeployment } from "./deployment";
-import { runCommand } from "./command";
-import axios from "../../utils/axios";
-import { EventDispatcher } from "../../events/EventDispatcher";
-import { DeploymentScriptStartedEvent } from "../../events/DeploymentScriptStartedEvent";
-import { DeploymentScriptEndedEvent } from "../../events/DeploymentScriptEndedEvent";
+import { requireAuthentication } from '../auth/store-token/store';
+import { writeChainDeploymentId , createDeployment } from './deployment';
+import { sendFile, zipFile } from './artifacts';
+import { runCommand } from './command';
+import axios from '../../utils/axios';
+import { EventDispatcher } from '../../events/EventDispatcher';
+import { DeploymentScriptStartedEvent } from '../../events/DeploymentScriptStartedEvent';
+import { DeploymentScriptEndedEvent } from '../../events/DeploymentScriptEndedEvent';
 
 export async function deploy(network: string[], deterministicAddresses: boolean = false) {
   if (!network || network.length < 1) {
-    console.error("Please specify a network using --networks");
+    console.error('Please specify a network using --networks');
     process.exit(1);
   }
 
@@ -20,14 +19,14 @@ export async function deploy(network: string[], deterministicAddresses: boolean 
   // await requireProject();
 
   console.log();
-  console.log("Creating deployment...");
+  console.log('Creating deployment...');
 
   const deployment = await createDeployment(network, deterministicAddresses);
 
-  console.log("Deployment created");
+  console.log('Deployment created');
   console.log('Access your deployment information at: ' + `${process.env.ANYFLOW_FRONTEND_URL}/deployments/${deployment.data.id}`);
-  console.log("");
-  console.log("Preparing artifacts for deployment...");
+  console.log('');
+  console.log('Preparing artifacts for deployment...');
 
   const zipFilePath = await zipFile();
   await sendFile(zipFilePath, deployment.data.id);
@@ -36,8 +35,8 @@ export async function deploy(network: string[], deterministicAddresses: boolean 
   const successfulChains: number[] = [];
   const failedChains: number[] = [];
 
-  console.log("Deploying to chains...");
-  console.log("");
+  console.log('Deploying to chains...');
+  console.log('');
 
   for (const chainDeployment of chainDeployments) {
     console.log(`Starting deployment to chain ID ${chainDeployment.chain_id}...`);
@@ -46,7 +45,7 @@ export async function deploy(network: string[], deterministicAddresses: boolean 
     // await updateChainDeploymentStatus(chain.id, 'deploying');
     const command = 'npm';
     const args = ['run', 'deploy', '--', '--network', chainDeployment.chain_id.toString()];
-    const fullCommand = `${command} ${args.join(' ')}`
+    const fullCommand = `${command} ${args.join(' ')}`;
     console.log(`Running command: ${fullCommand}`);
 
     EventDispatcher.getInstance().dispatchEvent(new DeploymentScriptStartedEvent(chainDeployment.id, fullCommand));
@@ -81,11 +80,11 @@ export async function deploy(network: string[], deterministicAddresses: boolean 
   if (successfulChains.length == chainDeployments.length) {
     console.log('Deployment completed! 🚀');
   } else if (successfulChains.length > 0 && failedChains.length > 0) {
-    console.error("Deployment completed with errors:");
+    console.error('Deployment completed with errors:');
     console.error(`Successful chains: ${successfulChains}`);
     console.error(`Failed chains: ${failedChains.join(', ')}`);
   } else {
-    console.error("Deployment failed!");
+    console.error('Deployment failed!');
     console.error(`Failed chains: ${failedChains.join(', ')}`);
   }
   console.log('');
@@ -98,7 +97,7 @@ function extractIds(deployment: any) {
 }
 
 export async function updateChainDeploymentStatus(chainId: number, status: string) {
-  const response = await axios.put(`api/chain-deployments/${chainId}/status`, { status })
+  const response = await axios.put(`api/chain-deployments/${chainId}/status`, { status });
 
   if (response.status < 200 || response.status >= 300) {
     console.error(`Failed to update status for chain ID ${chainId}:`,);
@@ -151,4 +150,4 @@ const fileString = `-------------------------------------------
 This file is used to register deployments that didn't have their status updated successfully. 
 You can run the command "anyflow fix" to fix it 
 Or just delete it, but this will create inconsistencies in your account.
--------------------------------------------\n`
+-------------------------------------------\n`;
