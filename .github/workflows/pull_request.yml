@@ -31,5 +31,5 @@ jobs:
       - name: Build app
         run: pnpm run build:prod
 
-      - name: Build app
+      - name: Test app
         run: pnpm run test
