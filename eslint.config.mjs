@@ -22,6 +22,7 @@ export default [...fixupConfigRules(compat.extends(
     "eslint:recommended",
     "plugin:@typescript-eslint/recommended",
     "plugin:import/recommended",
+    "plugin:import/typescript",
     "plugin:node/recommended",
     "plugin:promise/recommended",
 )), {
@@ -32,14 +33,33 @@ export default [...fixupConfigRules(compat.extends(
         promise: fixupPluginRules(promise),
     },
 
+    settings: {
+        "import/resolver": {
+            typescript: {
+                alwaysTryTypes: true,
+                project: path.resolve(__dirname, './tsconfig.json'),
+            },
+            node: {
+                extensions: ['.js', '.ts'],
+                paths: ['src']
+            }
+        },
+        "import/extensions": [".js", ".ts"],
+        "import/parsers": {
+            "@typescript-eslint/parser": [".ts"]
+        }
+    },
+
     languageOptions: {
         globals: {
             ...globals.node,
         },
-
         parser: tsParser,
-        ecmaVersion: 2020,
-        sourceType: "module",
+        parserOptions: {
+            ecmaVersion: 2022,
+            sourceType: "module",
+            project: "./tsconfig.json"
+        }
     },
 
     rules: {
@@ -47,9 +67,14 @@ export default [...fixupConfigRules(compat.extends(
         quotes: ["error", "single"],
         semi: ["warn", "always"],
         "no-console": "off",
+        "node/no-missing-import": "off", // Disable this since TypeScript handles it
+        "node/no-unsupported-features/es-syntax": ["error", {
+            ignores: ["modules", "dynamicImport"]
+        }],
 
         "@typescript-eslint/no-unused-vars": ["error", {
             argsIgnorePattern: "^_",
+            varsIgnorePattern: "^_"
         }],
 
         "import/order": ["error", {
@@ -57,8 +82,7 @@ export default [...fixupConfigRules(compat.extends(
             "newlines-between": "always",
         }],
 
-        "node/no-unsupported-features/es-syntax": ["error", {
-            ignores: ["modules"],
-        }],
+        "no-process-exit": "off", // Since this is a CLI tool, process.exit is acceptable
+        "@typescript-eslint/no-explicit-any": "warn" // Downgrade to warning for now
     },
 }];

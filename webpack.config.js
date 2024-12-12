@@ -24,6 +24,7 @@ module.exports = (env) => {
 
     return {
         mode: environment === 'production' ? 'production' : 'development',
+        devtool: environment === 'production' ? 'source-map' : 'inline-source-map',
         entry: './src/cli.ts', // Entry point for the CLI
         output: {
             filename: 'cli.js',
