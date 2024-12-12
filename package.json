@@ -18,7 +18,8 @@
     "build:prod": "webpack --env ENV=production",
     "publish:dev": "npm run build:dev && npm publish --tag dev",
     "publish:staging": "npm run build:staging && npm publish --tag beta",
-    "publish:prod": "npm run build:prod && npm publish --tag latest"
+    "publish:prod": "npm run build:prod && npm publish --tag latest",
+    "lint": "eslint 'src/**/*.{ts,js}'"
   },
   "homepage": "anyflow.pro",
   "keywords": [
@@ -55,12 +56,22 @@
     "pkg-dir": "^8.0.0"
   },
   "devDependencies": {
+    "@eslint/compat": "^1.2.4",
+    "@eslint/eslintrc": "^3.2.0",
+    "@eslint/js": "^9.16.0",
     "@types/mocha": "^10.0.9",
     "@types/node": "^22.5.3",
     "@types/openurl": "^1.0.3",
     "@types/pkg-dir": "^2.0.1",
+    "@typescript-eslint/eslint-plugin": "^8.18.0",
+    "@typescript-eslint/parser": "^8.18.0",
     "cross-env": "^7.0.3",
     "dotenv-webpack": "^8.1.0",
+    "eslint": "^9.16.0",
+    "eslint-plugin-import": "^2.31.0",
+    "eslint-plugin-node": "^11.1.0",
+    "eslint-plugin-promise": "^7.2.1",
+    "globals": "^15.13.0",
     "ts-loader": "^9.5.1",
     "ts-node": "^10.9.2",
     "typescript": "^5.6.3",

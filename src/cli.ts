@@ -106,8 +106,9 @@ async function main() {
 
 async function exitHandler(_: Command, actionCommand: Command) {
   // Perform any cleanup or final logging here
+  const elasedTime = executionTime();
   EventDispatcher.getInstance().dispatchEvent(new ProgramEndedEvent(
-    0, executionTime()
+    0, elasedTime
   ));
   await EventDispatcher.getInstance().waitForAllEvents();
 

@@ -1,6 +1,7 @@
 const path = require('path');
 const fs = require('fs');
 const Dotenv = require('dotenv-webpack');
+const { optimize } = require('webpack');
 
 module.exports = (env) => {
     const environment = env.ENV || 'production'; // Use the environment passed during the build
@@ -39,6 +40,9 @@ module.exports = (env) => {
                     exclude: /node_modules/,
                 },
             ],
+        },
+        optimization: {
+            minimize: false,
         },
         plugins: [
             new Dotenv({
