@@ -4,6 +4,9 @@ import { sendFile, zipFile } from "./artifacts";
 import { createDeployment } from "./deployment";
 import { runCommand } from "./command";
 import axios from "../../utils/axios";
+import { EventDispatcher } from "../../events/EventDispatcher";
+import { DeploymentScriptStartedEvent } from "../../events/DeploymentScriptStartedEvent";
+import { DeploymentScriptEndedEvent } from "../../events/DeploymentScriptEndedEvent";
 
 export async function deploy(network: string[], deterministicAddresses: boolean = false) {
   if (!network || network.length < 1) {
@@ -22,40 +25,72 @@ export async function deploy(network: string[], deterministicAddresses: boolean 
   const deployment = await createDeployment(network, deterministicAddresses);
 
   console.log("Deployment created");
-
+  console.log('Access your deployment information at: ' + `${process.env.ANYFLOW_FRONTEND_URL}/deployments/${deployment.data.id}`);
+  console.log("");
   console.log("Preparing artifacts for deployment...");
 
   const zipFilePath = await zipFile();
   await sendFile(zipFilePath, deployment.data.id);
 
-  const chain_data: { id: number, chain_id: number }[] = extractIds(deployment);
+  const chainDeployments: { id: number, chain_id: number }[] = extractIds(deployment);
+  const successfulChains: number[] = [];
   const failedChains: number[] = [];
 
-  console.log("Deploying chains...");
+  console.log("Deploying to chains...");
+  console.log("");
 
-  for (const chain of chain_data) {
-    console.log(`Deploying chain ID ${chain.chain_id}...`);
-    await writeChainDeploymentId(chain.id);
+  for (const chainDeployment of chainDeployments) {
+    console.log(`Starting deployment to chain ID ${chainDeployment.chain_id}...`);
+    await writeChainDeploymentId(chainDeployment.id);
 
-    await updateChainDeploymentStatus(chain.id, 'deploying');
+    // await updateChainDeploymentStatus(chain.id, 'deploying');
+    const command = 'npm';
+    const args = ['run', 'deploy', '--', '--network', chainDeployment.chain_id.toString()];
+    const fullCommand = `${command} ${args.join(' ')}`
+    console.log(`Running command: ${fullCommand}`);
 
-    try {
-      await runCommand(chain.chain_id.toString());
+    EventDispatcher.getInstance().dispatchEvent(new DeploymentScriptStartedEvent(chainDeployment.id, fullCommand));
 
-      await updateChainDeploymentStatus(chain.id, 'finished');
-    } catch (error) {
-      await updateChainDeploymentStatus(chain.id, 'failed');
-      console.error(`Deployment failed for chain ID ${chain.id}:`);
+    const start = performance.now();
+    const { exitCode, stdout, stderr } = await runCommand(command, args);
+    const end = performance.now();
+    const executionTime = Math.floor(end - start);
 
-      failedChains.push(chain.chain_id);
+    // await updateChainDeploymentStatus(chain.id, 'finished');
+    EventDispatcher.getInstance().dispatchEvent(new DeploymentScriptEndedEvent(chainDeployment.id, exitCode, stdout, stderr, executionTime));
+
+    if (exitCode != 0) {
+      console.error(`Deployment failed for chain ID ${chainDeployment.id} ❌`);
+      failedChains.push(chainDeployment.chain_id);
+    } else {
+      console.log(`Deployment completed for chain ID ${chainDeployment.chain_id} 🚀`);
+      successfulChains.push(chainDeployment.chain_id);
     }
   }
 
-  if (failedChains.length > 0) {
-    console.error("Failed chains, try again later:", failedChains);
+  // TODO:
+  // 1. wait for consolidation step to finish on the backend
+  // 2. get deployment details
+  //   -> chain info
+  //   -> txs
+  //   -> contracts deployed and their addresses
+  //   -> deployment cost per chain
+  //   -> total deployment cost
+
+  // Show failed deployments
+  if (successfulChains.length == chainDeployments.length) {
+    console.log('Deployment completed! 🚀');
+  } else if (successfulChains.length > 0 && failedChains.length > 0) {
+    console.error("Deployment completed with errors:");
+    console.error(`Successful chains: ${successfulChains}`);
+    console.error(`Failed chains: ${failedChains.join(', ')}`);
   } else {
-    console.log("Deployment dispatched");
+    console.error("Deployment failed!");
+    console.error(`Failed chains: ${failedChains.join(', ')}`);
   }
+  console.log('');
+  console.log('Access your deployment information at: ' + `${process.env.ANYFLOW_FRONTEND_URL}/deployments/${deployment.data.id}`);
+  console.log('');
 }
 
 function extractIds(deployment: any) {

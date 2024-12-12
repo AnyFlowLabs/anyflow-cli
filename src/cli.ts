@@ -1,6 +1,6 @@
 #!/usr/bin/env node
 
-import { Command } from "commander";
+import { Command, CommanderError } from "commander";
 import { init } from "./commands/init";
 import { authenticate } from "./commands/auth/auth";
 import { install } from "./commands/install";
@@ -9,17 +9,29 @@ import { checkAuth } from "./commands/auth/check-auth";
 import { logout } from './commands/logout';
 import { fix } from './commands/deploy/fix';
 import packageJson from '../package.json';
+import { EventDispatcher } from "./events/EventDispatcher";
+import { ProgramStartedEvent } from "./events/ProgramStartedEvent";
+import { ProgramEndedEvent } from "./events/ProgramEndedEvent";
 // import { printHeader } from "./utils/header";
 
+const start = performance.now();
+function executionTime() {
+  return Math.floor(performance.now() - start)
+}
+
 async function main() {
-  const version = packageJson.version;
-  console.log(`Starting AnyFlow CLI v${version}...`);
-
-  const program = new Command();
-
-  // printHeader();
-
   try {
+    const version = packageJson.version;
+    console.log(`Starting AnyFlow CLI v${version}...`);
+    EventDispatcher.getInstance().dispatchEvent(new ProgramStartedEvent(process.argv.slice(2).join(" ")));
+
+    // Check connection with the backend
+    // await checkConnection();
+
+    const program = new Command();
+
+    // printHeader();
+
     program
       .name("anyflow")
       .description("The CLI for AnyFlow operations. Check https://docs.anyflow.pro/docs/anyflow_cli/ to learn more.")
@@ -28,17 +40,20 @@ async function main() {
     program
       .command("init")
       .description("Initialize the AnyFlow CLI")
-      .action(init);
+      .action(init)
+      .hook('postAction', exitHandler)
 
     program
       .command("auth")
       .description("Authenticate to the AnyFlow service")
-      .action(authenticate);
+      .action(authenticate)
+      .hook('postAction', exitHandler)
 
     program
       .command("install")
       .description("Perform local file manipulation for setup")
-      .action(install);
+      .action(install)
+      .hook('postAction', exitHandler)
 
     program
       .command("deploy")
@@ -51,29 +66,58 @@ async function main() {
         const da = options.deterministicAddresses || options.da || false;
         console.log("Deterministic addresses option:", da);
         return deploy(options.networks, da);
-      });
+      })
+      .hook('postAction', exitHandler)
 
     program
       .command("check-auth")
       .description("Check authentication status")
-      .action(checkAuth);
+      .action(checkAuth)
+      .hook('postAction', exitHandler)
 
     program
       .command("logout")
       .description("Clear user credencials")
       .action(logout)
+      .hook('postAction', exitHandler)
 
     program
       .command("fix")
       .description("Fix failed deployments")
       .action(fix)
+      .hook('postAction', exitHandler)
+
+    program
+      .command("*", { isDefault: true })
+      .action(() => {
+        program.help();
+      })
+      .hook('postAction', exitHandler)
 
     await program.parseAsync(process.argv);
   } catch (error) {
-    console.error(error);
-  }
+    EventDispatcher.getInstance().dispatchEvent(new ProgramEndedEvent(
+      0, executionTime()
+    ));
 
-  process.exit(0);
+    console.error("Unhandled error:", error);
+  }
 }
 
-main().catch(console.error);
+async function exitHandler(_: Command, actionCommand: Command) {
+  // Perform any cleanup or final logging here
+  EventDispatcher.getInstance().dispatchEvent(new ProgramEndedEvent(
+    0, executionTime()
+  ));
+  await EventDispatcher.getInstance().waitForAllEvents();
+
+  console.log("Exiting...");
+}
+
+main()
+  .then(() => {
+    process.exit(0);
+  })
+  .catch((error) => {
+    console.error("Exited with error:", error);
+  });

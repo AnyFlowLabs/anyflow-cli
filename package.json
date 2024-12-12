@@ -1,7 +1,7 @@
 {
   "name": "anyflow-cli-test",
   "description": "CLI for AnyFlow operations",
-  "version": "1.0.8",
+  "version": "1.0.9",
   "main": "dist/cli.js",
   "bin": {
     "anyflow": "./dist/cli.js"
@@ -13,12 +13,12 @@
     "test": "echo \"Warn: no test specified\" && exit 0",
     "start": "node dist/cli.js help",
     "anyflow": "node dist/cli.js",
-    "build:development": "webpack --env ENV=development",
+    "build:dev": "webpack --env ENV=development",
     "build:staging": "webpack --env ENV=staging",
-    "build:production": "webpack --env ENV=production",
-    "publish:development": "npm run build:development && npm publish --tag dev",
+    "build:prod": "webpack --env ENV=production",
+    "publish:dev": "npm run build:dev && npm publish --tag dev",
     "publish:staging": "npm run build:staging && npm publish --tag beta",
-    "publish:production": "npm run build:production && npm publish --tag latest"
+    "publish:prod": "npm run build:prod && npm publish --tag latest"
   },
   "homepage": "anyflow.pro",
   "keywords": [
@@ -43,6 +43,7 @@
     "@types/adm-zip": "^0.5.6",
     "@types/lodash": "^4.17.13",
     "adm-zip": "^0.5.16",
+    "async-mutex": "^0.5.0",
     "axios": "^1.7.7",
     "commander": "^12.1.0",
     "dotenv": "^16.4.5",

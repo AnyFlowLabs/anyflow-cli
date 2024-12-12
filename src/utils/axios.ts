@@ -18,6 +18,11 @@ instance.interceptors.request.use(
             config.headers.Authorization = `Bearer ${token}`;
         }
 
+        // if (process.env.DEBUG) {
+        //     console.log(`HTTP Request: ${config.method?.toUpperCase()} ${config.url}`, config.data);
+        //     // console.log(`HTTP Request: ${config.method?.toUpperCase()} ${config.url}`, { data: config.data, headers: config.headers });
+        // }
+
         return config;
     },
     (error) => {
@@ -27,9 +32,17 @@ instance.interceptors.request.use(
 
 instance.interceptors.response.use(
     (response) => {
+        // if (process.env.DEBUG) {
+        //     console.log(`HTTP Response: ${response.config.method?.toUpperCase()} ${response.config.url}`, response.data);
+        // }
+
         return response;
     },
     (error) => {
+        // if (process.env.DEBUG) {
+        //     console.log(`HTTP Response: ${error.response?.config.method?.toUpperCase()} ${error.response?.config.url}`, error?.response.data);
+        // }
+
         if (error.response?.status === 401) {
             console.warn("HTTP 401. Invalid or expired token. Please run 'anyflow auth' to authenticate.");
             process.exit(1);

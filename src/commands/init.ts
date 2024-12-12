@@ -1,6 +1,7 @@
 import fs from 'fs';
 import path from 'path';
 import { getProjectRoot } from '../utils/getProjectRoot';
+import { getToken } from './auth/store-token/store';
 
 export async function init() {
   // TODO: ensure is hardhat project
@@ -27,6 +28,7 @@ async function checkEnvironmentVars(envContent: string, envPath: string) {
   const vars = {
     ANYFLOW_BASE_RPC_URL: process.env.ANYFLOW_BASE_RPC_URL,
     ANYFLOW_BACKEND_URL: process.env.ANYFLOW_BACKEND_URL,
+    ANYFLOW_API_KEY: await getToken(),
   };
 
   let updated = false;

@@ -43,7 +43,7 @@ export function storeTokenInFile(encryptedToken: string) {
     // Write the encrypted token to the file with restricted permissions
     fs.writeFileSync(tokenFile, encryptedToken, { mode: 0o600 });
 
-    console.log("Encrypted token stored in file ~/.anyflow/token.");
+    console.log("Encrypted token stored in ~/.anyflow/token");
   } catch (error) {
     throw new Error(`Failed to store token in file: ${error}`);
   }
@@ -85,6 +85,11 @@ export const getToken = memoize(async function (): Promise<string | null> {
 export async function isAuthenticated(): Promise<boolean> {
   return (await getToken()) !== null;
 }
+
+export const getUserId = memoize(async function (): Promise<number> {
+  const user = await getUser();
+  return user.id;
+})
 
 export async function requireAuthentication(): Promise<void> {
   if (!(await isAuthenticated())) {
