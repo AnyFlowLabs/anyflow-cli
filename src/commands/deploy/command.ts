@@ -1,30 +1,59 @@
-import { spawn } from "child_process";
+import { spawn } from 'child_process';
 
-export async function runCommand(network: string[]) {
-  console.log("Starting deployment...");
+type CommandReturnType = {
+  exitCode: number;
+  stdout: string;
+  stderr: string;
+}
 
-  const command = 'npm';
-  const args = ['run', 'deploy', '--', '--network', ...network];
+/**
+ * Run a command.
+ * Will return the exit code, stdout and stderr of the command
+ * independently of the result.
+ * The caller should check the exit code to determine if the command
+ * was successful or not.
+ */
+export async function runCommand(command: string, args: string[]): Promise<CommandReturnType> {
+  let child;
+  try {
+    child = spawn(command, args, { shell: true });
+  } catch (err: unknown) {
+    return Promise.resolve({
+      exitCode: 1,
+      stderr: err instanceof Error ? err.message : String(err),
+      stdout: '',
+    });
+  }
 
-  console.log(`Running command: ${command} ${args.join(' ')}`);
+  child.on('error', (err: unknown) => {
+    return Promise.resolve({
+      exitCode: 1,
+      stderr: err instanceof Error ? err.message : String(err),
+      stdout: '',
+    });
+  });
 
-  const child = spawn(command, args, { stdio: 'inherit', shell: true });
+  return new Promise((resolve) => {
+    let stdout = '';
+    let stderr = '';
 
-  return new Promise<void>((resolve, reject) => {
-    child.on('close', (code: number) => {
-      if (code !== 0) {
-        console.error(`Deploy failed with exit code ${code}`);
-        reject(new Error(`Deploy failed with exit code ${code}`));
-      } else {
-        console.log("Deploy successful");
-        resolve();
-      }
+    console.log('Output:');
+    child.stdout.on('data', (data: Buffer) => {
+      console.log(data.toString());
+      stdout += data.toString();
     });
 
-    child.on('error', (err: any) => {
-      console.error(`Error spawning command: ${err.message}`);
-      reject(err);
-      process.exit(1);
+    child.stderr.on('data', (data: Buffer) => {
+      console.error(data.toString());
+      stderr += data.toString();
+    });
+
+    child.on('close', (code: number) => {
+      resolve({
+        exitCode: code,
+        stderr,
+        stdout,
+      });
     });
   });
 }

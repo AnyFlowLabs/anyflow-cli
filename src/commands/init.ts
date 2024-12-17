@@ -1,48 +1,35 @@
 import fs from 'fs';
 import path from 'path';
-import crypto from 'crypto';
-import dotenv from 'dotenv';
+
 import { getProjectRoot } from '../utils/getProjectRoot';
-import { BACKEND_URL, RPC_BASE_URL } from '../config/internal-config';
+import { getToken } from './auth/store-token/store';
 
 export async function init() {
-    await ensureEnvFile();
-    const rootDir = await getProjectRoot();
-    dotenv.config({ path: path.join(rootDir, '.env') });
-    
-    if (!process.env.ANYFLOW_ENCRYPTION_KEY) {
-      console.error('ANYFLOW_ENCRYPTION_KEY is not set in the environment variables.');
-      process.exit(1);
-    }    
+  // TODO: ensure is hardhat project
+  await ensureEnvFile();
 }
 
 async function ensureEnvFile() {
   const rootDir = await getProjectRoot();
   const envPath = path.join(rootDir, '.env');
-  
+
   if (!fs.existsSync(envPath)) {
-    const key = crypto.randomBytes(32).toString('hex');
-    const envContent = [
-      `ANYFLOW_ENCRYPTION_KEY=${key}`,
-      'NODE_ENV=development',
-      'ANYFLOW_BASE_RPC_URL=http://nest:3000',
-      'ANYFLOW_BACKEND_URL=http://localhost/api',
-    ].join('\n');
-    
-    fs.writeFileSync(envPath, envContent);
-    console.log('Created .env file with default development configuration.');
-  } else {
-    let envContent = fs.readFileSync(envPath, 'utf8');
-    await checkKey(envContent, envPath);
-    await checkEnvironmentVars(envContent, envPath);
+    fs.writeFileSync(envPath, '');
   }
+
+  const envContent = fs.readFileSync(envPath, 'utf8');
+  // [TEMP] Disabling encryption for now [AF-281]
+  // await checkKey(envContent, envPath);
+  await checkEnvironmentVars(envContent, envPath);
+
+  console.log('Created .env file with default configuration.');
 }
 
 async function checkEnvironmentVars(envContent: string, envPath: string) {
   const vars = {
-    NODE_ENV: 'development',
-    ANYFLOW_BASE_RPC_URL: RPC_BASE_URL,
-    ANYFLOW_BACKEND_URL: BACKEND_URL,
+    ANYFLOW_BASE_RPC_URL: process.env.ANYFLOW_BASE_RPC_URL,
+    ANYFLOW_BACKEND_URL: process.env.ANYFLOW_BACKEND_URL,
+    ANYFLOW_API_KEY: await getToken(),
   };
 
   let updated = false;
@@ -58,14 +45,14 @@ async function checkEnvironmentVars(envContent: string, envPath: string) {
   }
 }
 
-async function checkKey(envContent: string, envPath: string) {
-  if (!envContent.includes('ANYFLOW_ENCRYPTION_KEY=')) {
-    const key = crypto.randomBytes(32).toString('hex');
-    
-    fs.appendFileSync(envPath, `\nANYFLOW_ENCRYPTION_KEY=${key}\n`);
-    
-    console.log('Added ANYFLOW_ENCRYPTION_KEY to existing .env file in the project root.');
-  } else {
-    console.warn('ANYFLOW_ENCRYPTION_KEY already exists in .env file.');
-  }
-}
+// async function checkKey(envContent: string, envPath: string) {
+//   if (envContent.includes('ANYFLOW_ENCRYPTION_KEY=')) {
+//     console.warn('ANYFLOW_ENCRYPTION_KEY already exists in .env file.');
+//     return
+//   }
+
+//   const key = crypto.randomBytes(32).toString('hex');
+//   fs.appendFileSync(envPath, `\nANYFLOW_ENCRYPTION_KEY=${key}\n`);
+
+//   console.log('Added ANYFLOW_ENCRYPTION_KEY to existing .env file in the project root.');
+// }

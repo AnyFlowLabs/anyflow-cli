@@ -1,5 +1,6 @@
 {
   "compilerOptions": {
+    "target": "ES6",
     "module": "NodeNext",
     "moduleResolution": "NodeNext",
     "allowJs": false,
@@ -15,8 +16,12 @@
     "allowSyntheticDefaultImports": true,
     "sourceMap": true,
     "resolveJsonModule": true,
-    "declaration": true
+    "declaration": true,
+    "baseUrl": "./src",
+    "paths": {
+      "*": ["*", "*.js", "*.ts"]
+    }
   },
   "include": ["src/**/*"],
-  "exclude": ["artifacts", "dist", "build", "node_modules"] 
+  "exclude": ["dist", "node_modules"] 
 }

@@ -1,14 +1,14 @@
-import { getToken } from "../auth/store-token/store";
+import { getToken } from '../auth/store-token/store';
 import { updateChainDeploymentStatus } from './deploy';
 
 export async function fix() {
   const fs = require('fs');
-  console.log("Fixing failed deployments...");
-  const path = `anyflow_failed_deployments.txt`;
+  console.log('Fixing failed deployments...');
+  const path = 'anyflow_failed_deployments.txt';
 
-  let token = await getToken();
+  const token = await getToken();
 
-  const failedDeployments: {chainId: number, status: string}[] = [];
+  const failedDeployments: { chainId: number, status: string }[] = [];
 
   // Read the failed deployments file synchronously
   try {
@@ -24,7 +24,7 @@ export async function fix() {
       });
 
     console.log(`Found ${lines.length} failed status update${lines.length === 1 ? '' : 's'}`);
-    
+
     failedDeployments.push(...lines);
   } catch (err) {
     console.error(`Failed to read file ${path}:`, err);
@@ -33,7 +33,7 @@ export async function fix() {
 
   for (const deployment of failedDeployments) {
     try {
-      await updateChainDeploymentStatus(deployment.chainId, deployment.status, token!);
+      await updateChainDeploymentStatus(deployment.chainId, deployment.status);
       const data = fs.readFileSync(path, 'utf8');
       const updatedData = data.split('\n')
         .filter((line: string) => !line.includes(`Chain ID: ${deployment.chainId}, Status: ${deployment.status}`))

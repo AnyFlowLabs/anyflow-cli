@@ -1,58 +1,66 @@
-import axios from "axios";
-import fs from "fs";
-import FormData from "form-data";
-import AdmZip from "adm-zip";
-import path from "path";
-import { getProjectRoot } from "../../utils/getProjectRoot";
-import { BACKEND_URL } from "../../config/internal-config";
+import fs from 'fs';
+import path from 'path';
 
-export async function sendFile(zipFilePath: string, id: number, token: string) {
+import FormData from 'form-data';
+import AdmZip from 'adm-zip';
+
+import { getProjectRoot } from '../../utils/getProjectRoot';
+import axios from '../../utils/axios';
+
+export async function sendFile(zipFilePath: string, id: number) {
   try {
     // Prepare form data
     const form = new FormData();
-    form.append("file", fs.createReadStream(zipFilePath));
+    form.append('file', fs.createReadStream(zipFilePath));
 
     // Send the zipped artifact
     const response = await axios
-      .post(`${BACKEND_URL}/deployments/${id}/upload-artifacts`, form, {
+      .post(`api/deployments/${id}/upload-artifacts`, form, {
         headers: {
           ...form.getHeaders(),
-          Authorization: `Bearer ${token}`,
         },
       })
       .then((res) => {
         console.log(res.data);
-        console.log("Artifacts uploaded successfully");
+        console.log('Artifacts uploaded successfully');
       })
       .catch((err) => {
         console.log(err.status);
         console.log(err.message);
-        console.log("Failed to upload artifacts");
+        console.log('Failed to upload artifacts');
         process.exit(1);
       });
 
     // Clean up the zip file
     fs.unlinkSync(zipFilePath);
   } catch (error: any) {
-    console.error("Failed to send file:", error.message);
+    console.error('Failed to send file:', error.message);
   }
 }
 
 export async function zipFile() {
+  // Check if artifacts folder exists
+  const projectRoute = await getProjectRoot();
+  const artifactsFolderPath = path.join(projectRoute, 'artifacts');
+  if (!fs.existsSync(artifactsFolderPath)) {
+    console.error('Artifacts folder not found. Did you forget to compile the project?');
+    process.exit(1);
+  }
+
   try {
     // Create a zip file
     const zip = new AdmZip();
-    const projectRoute = await getProjectRoot();
+
     // Add all files from the artifacts folder
-    const artifactsFolderPath = path.join(projectRoute, "artifacts");
+    const artifactsFolderPath = path.join(projectRoute, 'artifacts');
     zip.addLocalFolder(artifactsFolderPath);
 
-    const zipFilePath = path.join(projectRoute, "artifact.zip");
+    const zipFilePath = path.join(projectRoute, 'artifact.zip');
     zip.writeZip(zipFilePath);
 
     return zipFilePath;
   } catch (error: any) {
-    console.error("Failed to zip file:", error.message);
+    console.error('Failed to zip file:', error.message);
     process.exit(1);
   }
 }
