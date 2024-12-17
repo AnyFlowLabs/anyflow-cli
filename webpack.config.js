@@ -1,7 +1,7 @@
 const path = require('path');
 const fs = require('fs');
 const Dotenv = require('dotenv-webpack');
-const { optimize } = require('webpack');
+const { optimize, BannerPlugin } = require('webpack');
 
 module.exports = (env) => {
     const environment = env.ENV || 'production'; // Use the environment passed during the build
@@ -49,6 +49,34 @@ module.exports = (env) => {
             new Dotenv({
                 path: envPath
             }),
+            new BannerPlugin({
+                banner: '#!/usr/bin/env node',
+                raw: true,
+                entryOnly: true,
+              }),
+            new (class ModifyGeneratedFilesPlugin {
+              apply(compiler) {
+                compiler.hooks.afterEmit.tapAsync('ModifyGeneratedFilesPlugin', (compilation, callback) => {
+                  const outputPath = path.resolve(__dirname, 'dist', 'cli.js');
+                  fs.readFile(outputPath, 'utf8', (err, data) => {
+                    if (err) {
+                      console.error(err);
+                      callback();
+                      return;
+                    }
+    
+                    const modifiedData = data.replace('"true" = namespaces;', 'namespaces = "true"');
+                    
+                    fs.writeFile(outputPath, modifiedData, 'utf8', (err) => {
+                      if (err) {
+                        console.error(err);
+                      }
+                      callback();
+                    });
+                  });
+                });
+              }
+            })(),
         ],
         target: 'node', // Set for CLI/Node.js applications
     };
