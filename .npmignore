@@ -1,0 +1,6 @@
+src
+.github
+.gitignore
+eslint.config.mjs
+package.json
+README.md
