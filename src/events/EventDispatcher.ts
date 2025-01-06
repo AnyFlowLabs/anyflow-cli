@@ -29,7 +29,7 @@ export class EventDispatcher {
      * @param event 
      */
   public async dispatchEvent(event: BaseEvent): Promise<void> {
-    // if (process.env.DEBUG) {
+    // if (process.env.ANYFLOW_DEBUG) {
     //     console.log("Dispatching event...", event);
     // }
 
@@ -43,12 +43,12 @@ export class EventDispatcher {
 
     await event.send()
       .then(() => {
-        // if (process.env.DEBUG) {
+        // if (process.env.ANYFLOW_DEBUG) {
         //     console.log("Event sent", event);
         // }
       })
       .catch((error) => {
-        if (process.env.DEBUG) {
+        if (process.env.ANYFLOW_DEBUG) {
           console.error('Failed to send event', event, {
             status: error.status,
             message: error.message,

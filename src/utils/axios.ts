@@ -19,7 +19,7 @@ instance.interceptors.request.use(
       config.headers.Authorization = `Bearer ${token}`;
     }
 
-    // if (process.env.DEBUG) {
+    // if (process.env.ANYFLOW_DEBUG) {
     //     console.log(`HTTP Request: ${config.method?.toUpperCase()} ${config.url}`, config.data);
     //     // console.log(`HTTP Request: ${config.method?.toUpperCase()} ${config.url}`, { data: config.data, headers: config.headers });
     // }
@@ -33,14 +33,14 @@ instance.interceptors.request.use(
 
 instance.interceptors.response.use(
   (response) => {
-    // if (process.env.DEBUG) {
+    // if (process.env.ANYFLOW_DEBUG) {
     //     console.log(`HTTP Response: ${response.config.method?.toUpperCase()} ${response.config.url}`, response.data);
     // }
 
     return response;
   },
   (error) => {
-    // if (process.env.DEBUG) {
+    // if (process.env.ANYFLOW_DEBUG) {
     //     console.log(`HTTP Response: ${error.response?.config.method?.toUpperCase()} ${error.response?.config.url}`, error?.response.data);
     // }
 
