@@ -1,4 +1,6 @@
 
+#!/usr/bin/env node
+
 import { Command, CommanderError } from 'commander';
 
 import { init } from './commands/init';

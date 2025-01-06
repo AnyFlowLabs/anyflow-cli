@@ -2,6 +2,7 @@ const path = require('path');
 const fs = require('fs');
 const Dotenv = require('dotenv-webpack');
 const { optimize } = require('webpack');
+const ShebangPlugin = require('webpack-shebang-plugin');
 
 module.exports = (env) => {
     const environment = env.ENV || 'production'; // Use the environment passed during the build
@@ -46,6 +47,7 @@ module.exports = (env) => {
             minimize: false,
         },
         plugins: [
+            new ShebangPlugin(),
             new Dotenv({
                 path: envPath
             }),
