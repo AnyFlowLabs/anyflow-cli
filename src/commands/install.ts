@@ -1,6 +1,7 @@
 import fs from 'fs/promises';
 import path from 'path';
 import readline from 'readline';
+import { fileURLToPath } from 'url';
 
 import { getProjectRoot } from '../utils/getProjectRoot';
 import packageJson from '../../package.json';
@@ -17,6 +18,20 @@ type HardhatConf = {
     type: string
 }
 
+async function copyConfigFile(projectPath: string): Promise<void> {
+  const packagePath = path.join(__dirname, '../hardhat.config.ts');
+  
+  const destPath = path.join(projectPath, 'hardhat.anyflow.config.ts');
+  
+  try {
+    await fs.copyFile(packagePath, destPath);
+    console.log('Successfully copied Anyflow Hardhat configuration file');
+  } catch (error) {
+    console.error('Error copying configuration file:', error);
+    throw error;
+  }
+}
+
 export async function install() {
   console.log('Performing local file manipulation...');
 
@@ -31,6 +46,10 @@ export async function install() {
     console.error('Could not locate hardhat.config.ts(js) file. Installation aborted.');
     return;
   }
+
+  // Copiar o arquivo de configuração para o projeto
+  const projectDir = path.dirname(hardhatConfig.path);
+  await copyConfigFile(projectDir);
 
   // Read the existing config file
   let configContent = await fs.readFile(hardhatConfig.path, 'utf-8');
@@ -119,9 +138,9 @@ function updateHardhatConfig(content: string, type: string): string {
   if (!content.includes('anyflow-cli')) {
     // Add import statement based on type
     if (type === 'ts') {
-      content = `import AnyflowHardhatConfig from "${name}/hardhat.config";\n${content}`;
+      content = `import AnyflowHardhatConfig from "./hardhat.anyflow.config";\n${content}`;
     } else {
-      content = `const AnyflowHardhatConfig = require("${name}/hardhat.config");\n${content}`;
+      content = `const AnyflowHardhatConfig = require("./hardhat.anyflow.config");\n${content}`;
     }
   }
 
