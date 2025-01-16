@@ -76,7 +76,11 @@ export class EventDispatcher {
 
     while (this.pendingEvents.length > 0) {
       if (Date.now() - start > timeout) {
-        throw new Error('Timed out waiting for all events to send.');
+        if (process.env.ANYFLOW_DEBUG) {
+          throw new Error('Timed out waiting for all events to send.');
+        } else{
+          break;
+        }
       }
 
       await new Promise((resolve) => setTimeout(resolve, 100));

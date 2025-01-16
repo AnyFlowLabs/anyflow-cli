@@ -1,7 +1,7 @@
 {
   "name": "anyflow-cli",
   "description": "CLI for AnyFlow operations",
-  "version": "1.0.12",
+  "version": "1.0.13",
   "main": "dist/cli.js",
   "bin": {
     "anyflow": "dist/cli.js"
