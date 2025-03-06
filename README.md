@@ -1,6 +1,6 @@
 # AnyFlow CLI
 
-A command-line interface (CLI) for performing operations with AnyFlow.
+The official command-line interface for AnyFlow operations. This CLI allows you to interact with the AnyFlow ecosystem, deploy smart contracts, and manage your projects.
 
 ## Table of Contents
 
@@ -9,23 +9,22 @@ A command-line interface (CLI) for performing operations with AnyFlow.
 - [First Use and Authentication](#first-use-and-authentication)
 - [Commands](#commands)
 - [Configuration](#configuration)
+- [New Features](#new-features)
 - [Contributing](#contributing)
 - [License](#license)
 
 ## Installation
 
-To install the `anyflow-cli` inside you project:
-
 ```bash
-npm install anyflow-cli
+npm install -g anyflow-cli
 ```
 
 ## Usage
 
-After installation, you can use the `anyflow` cli in your terminal. To see the available commands and options, run:
+After installation, you can use the CLI with the `anyflow` command:
 
 ```bash
-anyflow help
+anyflow [command] [options]
 ```
 
 ## First Use and Authentication
@@ -79,17 +78,59 @@ Available commands:
 - `auth`: Authenticate your session with AnyFlow.
 - `check-auth`: Check your authentication status.
 - `deploy`: Upload your artifacts to the AnyFlow platform and deploy your project.
+  - `--networks <network...>`: Specify networks to deploy to
+  - `--deterministic-addresses` or `-da`: Use deterministic addresses
+- `logout`: Clear your authentication credentials.
+- `fix`: Fix failed deployments.
+- `version:check`: Check for newer versions of the CLI.
+
+## Configuration
+
+The CLI can be configured through environment variables. You can create a `.env` file in your project root with the following variables:
+
+```
+# API Configuration
+API_URL=https://api.anyflow.pro
+
+# Bugsnag Error Reporting (only active in production)
+BUGSNAG_API_KEY=your_bugsnag_key
+
+# Node Environment
+NODE_ENV=development
+```
+
+## New Features
+
+### Version Checking
+
+The CLI now automatically checks for updates when running commands. If a new version is available, it will notify you. You can also manually check for updates:
+
+```bash
+anyflow version:check
+```
+
+### Error Reporting
+
+The CLI now includes error reporting via Bugsnag to help us identify and fix issues faster. This is only active in production environments and doesn't collect any sensitive data.
+
+### Improved Logging
+
+The CLI now has improved logging with color-coded output and different log levels:
+
+- DEBUG: Detailed debugging information
+- INFO: General operational information
+- SUCCESS: Successful operations
+- WARNING: Potential issues that don't prevent operation
+- ERROR: Error conditions
+
+### Environment Validation
+
+The CLI now validates environment variables to prevent runtime errors due to missing or invalid configuration.
 
 ## Contributing
 
-Contributions are welcome! Please follow these steps to contribute:
-
-1. Fork the repository.
-2. Create a new branch (`git checkout -b feature/YourFeature`).
-3. Make your changes and commit them (`git commit -m 'Add some feature'`).
-4. Push to the branch (`git push origin feature/YourFeature`).
-5. Open a pull request.
+We welcome contributions to the AnyFlow CLI! Please see the [CONTRIBUTING.md](CONTRIBUTING.md) file for details on how to contribute.
 
 ## License
 
-This project is licensed under the ISC License - see the [LICENSE](LICENSE) file for details.
+This project is licensed under the ISC License.

@@ -3,6 +3,7 @@ import path from 'path';
 import os from 'os';
 
 import dotenv from 'dotenv';
+import logger from '../utils/logger';
 
 // import keytar from 'keytar';
 // import { SERVICE_NAME, ACCOUNT_NAME } from './auth/store-token/store';
@@ -12,7 +13,7 @@ export async function logout() {
   const rootDir = await getProjectRoot();
 
   if (!rootDir) {
-    console.error('Could not determine project root directory.');
+    logger.error('Could not determine project root directory.');
     return;
   }
 
@@ -27,25 +28,25 @@ export async function logout() {
         .map(([key, value]) => `${key}=${value}`)
         .join('\n');
       fs.writeFileSync(envPath, newEnvContent);
-      console.log('ANYFLOW_ENCRYPTION_KEY removed from .env file.');
+      logger.info('ANYFLOW_ENCRYPTION_KEY removed from .env file.');
     }
 
     if (fs.existsSync(keyFilePath)) {
       fs.rmSync(keyFilePath, { recursive: true });
-      console.log('Encryption key file deleted.');
+      logger.info('Encryption key file deleted.');
     } else {
-      console.warn('Encryption key file not found.');
+      logger.warn('Encryption key file not found.');
     }
 
     // try {
     //   await keytar.deletePassword(SERVICE_NAME, ACCOUNT_NAME);
-    //   console.log('Token deleted from system keychain.');
+    //   logger.info('Token deleted from system keychain.');
     // } catch (error) {
-    //   console.warn('Token not found in system keychain.');
+    //   logger.warn('Token not found in system keychain.');
     // }
 
-    console.log('Logged out successfully.');
+    logger.success('Logged out successfully.');
   } catch (error) {
-    console.error('Error during logout:', error);
+    logger.error('Error during logout:', error instanceof Error ? error : undefined);
   }
 }

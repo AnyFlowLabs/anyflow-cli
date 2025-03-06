@@ -1,4 +1,3 @@
-
 #!/usr/bin/env node
 
 import { Command, CommanderError } from 'commander';
@@ -14,7 +13,31 @@ import packageJson from '../package.json';
 import { EventDispatcher } from './events/EventDispatcher';
 import { ProgramStartedEvent } from './events/ProgramStartedEvent';
 import { ProgramEndedEvent } from './events/ProgramEndedEvent';
+import { initBugsnag } from './utils/bugsnag';
+import { performFullVersionCheck } from './utils/version-checker';
+import { CliError, ErrorCode } from './errors/CliError';
+import logger from './utils/logger';
+import { validateEnv } from './utils/env-validator';
 // import { printHeader } from "./utils/header";
+
+// Initialize error tracking
+initBugsnag();
+
+// Validate required environment variables
+try {
+  validateEnv([
+    {
+      name: 'NODE_ENV',
+      required: false,
+      defaultValue: 'development',
+      validator: (val) => ['development', 'staging', 'production'].includes(val),
+      errorMessage: 'Must be one of development, staging, or production'
+    }
+  ]);
+} catch (error) {
+  // Log and continue - this isn't critical for the CLI to run
+  logger.warn('Environment validation failed. Some features may not work correctly.');
+}
 
 const start = performance.now();
 function executionTime() {
@@ -24,15 +47,12 @@ function executionTime() {
 async function main() {
   try {
     const version = packageJson.version;
-    console.log(`Starting AnyFlow CLI v${version}...`);
+    logger.heading(`AnyFlow CLI v${version}`);
     EventDispatcher.getInstance().dispatchEvent(new ProgramStartedEvent(process.argv.slice(2).join(' ')));
 
-    // Check connection with the backend
-    // await checkConnection();
+    await performFullVersionCheck();
 
     const program = new Command();
-
-    // printHeader();
 
     program
       .name('anyflow')
@@ -64,9 +84,9 @@ async function main() {
       .option('--deterministic-addresses', 'Use deterministic addresses for deployment')
       .option('-da', 'Use deterministic addresses for deployment')
       .action((options) => {
-        console.log('Parsed networks:', options.networks);
+        logger.info('Parsed networks: ' + JSON.stringify(options.networks));
         const da = options.deterministicAddresses || options.da || false;
-        console.log('Deterministic addresses option:', da);
+        logger.info('Deterministic addresses option: ' + da);
         return deploy(options.networks, da);
       })
       .hook('postAction', exitHandler);
@@ -79,7 +99,7 @@ async function main() {
 
     program
       .command('logout')
-      .description('Clear user credencials')
+      .description('Clear user credentials')
       .action(logout)
       .hook('postAction', exitHandler);
 
@@ -97,24 +117,40 @@ async function main() {
       .hook('postAction', exitHandler);
 
     await program.parseAsync(process.argv);
-  } catch (error) {
+  } catch (error: unknown) {
     EventDispatcher.getInstance().dispatchEvent(new ProgramEndedEvent(
-      0, executionTime()
+      1, executionTime()
     ));
 
-    console.error('Unhandled error:', error);
+    if (error instanceof CliError) {
+      logger.error(error.getFormattedMessage());
+    } else if (error instanceof CommanderError) {
+      // Handle commander errors gracefully
+      logger.error(`Commander error: ${error.message}`);
+    } else {
+      logger.error('Unhandled error:', error instanceof Error ? error : undefined);
+      // Report unhandled errors to Bugsnag
+      const errorMessage = error instanceof Error ? error.message : 'Unknown error occurred';
+      const cliError = new CliError(
+        errorMessage,
+        ErrorCode.UNEXPECTED_ERROR,
+        { originalError: error }
+      );
+    }
+    
+    process.exit(1);
   }
 }
 
 async function exitHandler(_: Command, actionCommand: Command) {
   // Perform any cleanup or final logging here
-  const elasedTime = executionTime();
+  const elapsedTime = executionTime();
   EventDispatcher.getInstance().dispatchEvent(new ProgramEndedEvent(
-    0, elasedTime
+    0, elapsedTime
   ));
   await EventDispatcher.getInstance().waitForAllEvents();
 
-  console.log('Exiting...');
+  logger.info('Exiting...');
 }
 
 main()
@@ -122,5 +158,6 @@ main()
     process.exit(0);
   })
   .catch((error) => {
-    console.error('Exited with error:', error);
+    logger.error('Exited with error:', error instanceof Error ? error : undefined);
+    process.exit(1);
   });
