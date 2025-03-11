@@ -2,6 +2,7 @@ import fs from 'fs/promises';
 import path from 'path';
 import readline from 'readline';
 import { fileURLToPath } from 'url';
+import logger from '../utils/logger';
 
 import { getProjectRoot } from '../utils/getProjectRoot';
 import packageJson from '../../package.json';
@@ -25,15 +26,15 @@ async function copyConfigFile(projectPath: string): Promise<void> {
   
   try {
     await fs.copyFile(packagePath, destPath);
-    console.log('Successfully copied Anyflow Hardhat configuration file');
+    logger.success('Successfully copied Anyflow Hardhat configuration file');
   } catch (error) {
-    console.error('Error copying configuration file:', error);
+    logger.error('Error copying configuration file:', error instanceof Error ? error : undefined);
     throw error;
   }
 }
 
 export async function install() {
-  console.log('Performing local file manipulation...');
+  logger.info('Performing local file manipulation...');
 
   // Find the hardhat.config.ts file
   let hardhatConfig: HardhatConf = await findHardhatConfig();
@@ -43,7 +44,7 @@ export async function install() {
   }
 
   if (!hardhatConfig) {
-    console.error('Could not locate hardhat.config.ts(js) file. Installation aborted.');
+    logger.error('Could not locate hardhat.config.ts(js) file. Installation aborted.');
     return;
   }
 
@@ -60,7 +61,7 @@ export async function install() {
   // Write the updated config back to the file
   await fs.writeFile(hardhatConfig.path, configContent, 'utf-8');
 
-  console.log('Successfully updated hardhat.config.ts');
+  logger.success('Successfully updated hardhat.config.ts');
 }
 
 async function findHardhatConfig(dir = process.cwd()): Promise<{ path: string; type: string }> {
@@ -75,7 +76,7 @@ async function findHardhatConfig(dir = process.cwd()): Promise<{ path: string; t
   const parentDir = path.dirname(dir);
 
   if (parentDir === dir) {
-    console.warn('Could not find hardhat.config.ts(js) file automatically.');
+    logger.warn('Could not find hardhat.config.ts(js) file automatically.');
     return { path: '', type: 'js' };
   }
 
@@ -88,7 +89,7 @@ async function promptForConfigPath(): Promise<HardhatConf> {
       const dir = await getProjectRoot();
 
       if (!dir) {
-        console.error('Could not find project root directory.');
+        logger.error('Could not find project root directory.');
 
         rl.close();
 
@@ -117,13 +118,13 @@ async function promptForConfigPath(): Promise<HardhatConf> {
 
           resolve({ path: fullPath, type: extension });
         } else {
-          console.error('The specified path is not a file.');
+          logger.error('The specified path is not a file.');
           rl.close();
 
           resolve({ path: '', type: '' });
         }
       } catch (error) {
-        console.error('The specified file does not exist or is not accessible.');
+        logger.error('The specified file does not exist or is not accessible.', error instanceof Error ? error : undefined);
 
         rl.close();
 
@@ -168,7 +169,7 @@ function updateHardhatConfig(content: string, type: string): string {
       content += `\nexport default ${configName};\n`;
     }
   } else {
-    console.warn('Could not find HardhatUserConfig object. Manual configuration may be required.');
+    logger.warn('Could not find HardhatUserConfig object. Manual configuration may be required.');
   }
 
   return content;

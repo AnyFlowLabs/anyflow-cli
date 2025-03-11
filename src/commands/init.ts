@@ -3,6 +3,7 @@ import path from 'path';
 
 import { getProjectRoot } from '../utils/getProjectRoot';
 import { getToken } from './auth/store-token/store';
+import logger from '../utils/logger';
 
 export async function init() {
   // TODO: ensure is hardhat project
@@ -22,7 +23,7 @@ async function ensureEnvFile() {
   // await checkKey(envContent, envPath);
   await checkEnvironmentVars(envContent, envPath);
 
-  console.log('Created .env file with default configuration.');
+  logger.success('Created .env file with default configuration.');
 }
 
 async function checkEnvironmentVars(envContent: string, envPath: string) {
@@ -41,18 +42,18 @@ async function checkEnvironmentVars(envContent: string, envPath: string) {
   }
 
   if (updated) {
-    console.log('Updated .env file with missing environment variables.');
+    logger.info('Updated .env file with missing environment variables.');
   }
 }
 
 // async function checkKey(envContent: string, envPath: string) {
 //   if (envContent.includes('ANYFLOW_ENCRYPTION_KEY=')) {
-//     console.warn('ANYFLOW_ENCRYPTION_KEY already exists in .env file.');
+//     logger.warn('ANYFLOW_ENCRYPTION_KEY already exists in .env file.');
 //     return
 //   }
 
 //   const key = crypto.randomBytes(32).toString('hex');
 //   fs.appendFileSync(envPath, `\nANYFLOW_ENCRYPTION_KEY=${key}\n`);
 
-//   console.log('Added ANYFLOW_ENCRYPTION_KEY to existing .env file in the project root.');
+//   logger.info('Added ANYFLOW_ENCRYPTION_KEY to existing .env file in the project root.');
 // }

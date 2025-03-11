@@ -6,10 +6,11 @@ import axios from '../../utils/axios';
 import { EventDispatcher } from '../../events/EventDispatcher';
 import { DeploymentScriptStartedEvent } from '../../events/DeploymentScriptStartedEvent';
 import { DeploymentScriptEndedEvent } from '../../events/DeploymentScriptEndedEvent';
+import logger from '../../utils/logger';
 
 export async function deploy(network: string[], deterministicAddresses: boolean = false) {
   if (!network || network.length < 1) {
-    console.error('Please specify a network using --networks');
+    logger.error('Please specify a network using --networks');
     process.exit(1);
   }
 
@@ -18,15 +19,13 @@ export async function deploy(network: string[], deterministicAddresses: boolean 
   // TODO: check if the user is inside a valid project
   // await requireProject();
 
-  console.log();
-  console.log('Creating deployment...');
+  logger.info('Creating deployment...');
 
   const deployment = await createDeployment(network, deterministicAddresses);
 
-  console.log('Deployment created');
-  console.log('Access your deployment information at: ' + `${process.env.ANYFLOW_FRONTEND_URL}/deployments/${deployment.data.id}`);
-  console.log('');
-  console.log('Preparing artifacts for deployment...');
+  logger.success('Deployment created');
+  logger.info(`Access your deployment information at: ${process.env.ANYFLOW_FRONTEND_URL}/deployments/${deployment.data.id}`);
+  logger.info('Preparing artifacts for deployment...');
 
   const zipFilePath = await zipFile();
   await sendFile(zipFilePath, deployment.data.id);
@@ -35,18 +34,17 @@ export async function deploy(network: string[], deterministicAddresses: boolean 
   const successfulChains: number[] = [];
   const failedChains: number[] = [];
 
-  console.log('Deploying to chains...');
-  console.log('');
+  logger.heading('Deploying to chains...');
 
   for (const chainDeployment of chainDeployments) {
-    console.log(`Starting deployment to chain ID ${chainDeployment.chain_id}...`);
+    logger.info(`Starting deployment to chain ID ${chainDeployment.chain_id}...`);
     await writeChainDeploymentId(chainDeployment.id);
 
     // await updateChainDeploymentStatus(chain.id, 'deploying');
     const command = 'npm';
     const args = ['run', 'deploy', '--', '--network', chainDeployment.chain_id.toString()];
     const fullCommand = `${command} ${args.join(' ')}`;
-    console.log(`Running command: ${fullCommand}`);
+    logger.info(`Running command: ${fullCommand}`);
 
     EventDispatcher.getInstance().dispatchEvent(new DeploymentScriptStartedEvent(chainDeployment.id, fullCommand));
 
@@ -59,10 +57,10 @@ export async function deploy(network: string[], deterministicAddresses: boolean 
     EventDispatcher.getInstance().dispatchEvent(new DeploymentScriptEndedEvent(chainDeployment.id, exitCode, stdout, stderr, executionTime));
 
     if (exitCode != 0) {
-      console.error(`Deployment failed for chain ID ${chainDeployment.id} ❌`);
+      logger.error(`Deployment failed for chain ID ${chainDeployment.id} ❌`);
       failedChains.push(chainDeployment.chain_id);
     } else {
-      console.log(`Deployment completed for chain ID ${chainDeployment.chain_id} 🚀`);
+      logger.success(`Deployment completed for chain ID ${chainDeployment.chain_id} 🚀`);
       successfulChains.push(chainDeployment.chain_id);
     }
   }
@@ -78,18 +76,17 @@ export async function deploy(network: string[], deterministicAddresses: boolean 
 
   // Show failed deployments
   if (successfulChains.length == chainDeployments.length) {
-    console.log('Deployment completed! 🚀');
+    logger.success('Deployment completed! 🚀');
   } else if (successfulChains.length > 0 && failedChains.length > 0) {
-    console.error('Deployment completed with errors:');
-    console.error(`Successful chains: ${successfulChains}`);
-    console.error(`Failed chains: ${failedChains.join(', ')}`);
+    logger.warn('Deployment completed with errors:');
+    logger.info(`Successful chains: ${successfulChains}`);
+    logger.error(`Failed chains: ${failedChains.join(', ')}`);
   } else {
-    console.error('Deployment failed!');
-    console.error(`Failed chains: ${failedChains.join(', ')}`);
+    logger.error('Deployment failed!');
+    logger.error(`Failed chains: ${failedChains.join(', ')}`);
   }
-  console.log('');
-  console.log('Access your deployment information at: ' + `${process.env.ANYFLOW_FRONTEND_URL}/deployments/${deployment.data.id}`);
-  console.log('');
+  
+  logger.info(`Access your deployment information at: ${process.env.ANYFLOW_FRONTEND_URL}/deployments/${deployment.data.id}`);
 }
 
 function extractIds(deployment: any) {
@@ -100,7 +97,7 @@ export async function updateChainDeploymentStatus(chainId: number, status: strin
   const response = await axios.put(`api/chain-deployments/${chainId}/status`, { status });
 
   if (response.status < 200 || response.status >= 300) {
-    console.error(`Failed to update status for chain ID ${chainId}:`,);
+    logger.error(`Failed to update status for chain ID ${chainId}`);
     await logFailedDeploymentId(chainId, status);
   }
 }
@@ -113,10 +110,10 @@ async function logFailedDeploymentId(chainId: number, status: string) {
     if (err) {
       fs.writeFile(path, fileString, (err: any) => {
         if (err) {
-          console.error(`Failed to create file ${path}:`, err);
+          logger.error(`Failed to create file ${path}:`, err instanceof Error ? err : undefined);
         }
       });
-      console.error(`Failed to read file ${path}:`, err);
+      logger.error(`Failed to read file ${path}:`, err instanceof Error ? err : undefined);
       return;
     }
 
@@ -138,9 +135,9 @@ async function logFailedDeploymentId(chainId: number, status: string) {
 
     fs.writeFile(path, lines.join('\n'), (err: any) => {
       if (err) {
-        console.error(`Failed to write to file ${path}:`, err);
+        logger.error(`Failed to write to file ${path}:`, err instanceof Error ? err : undefined);
       } else {
-        console.log(`Logged/Updated chain ID: ${chainId} with status: ${status}`);
+        logger.info(`Logged/Updated chain ID: ${chainId} with status: ${status}`);
       }
     });
   });
