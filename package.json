@@ -1,7 +1,7 @@
 {
   "name": "anyflow-cli",
   "description": "CLI for AnyFlow operations",
-  "version": "1.0.13",
+  "version": "1.0.14",
   "main": "dist/cli.js",
   "bin": {
     "anyflow": "dist/cli.js"
@@ -19,9 +19,11 @@
     "publish:dev": "npm run build:dev && npm publish --tag dev",
     "publish:staging": "npm run build:staging && npm publish --tag beta",
     "publish:prod": "npm run build:prod && npm publish --tag latest",
-    "lint": "eslint 'src/**/*.{ts,js}'"
+    "lint": "eslint 'src/**/*.{ts,js}'",
+    "prepublishOnly": "npm run build:prod",
+    "version:check": "node dist/version-check.js"
   },
-  "homepage": "anyflow.pro",
+  "homepage": "https://anyflow.pro",
   "keywords": [
     "anyflowm",
     "web3",
@@ -41,11 +43,15 @@
   "author": "AnyflowLabs",
   "license": "ISC",
   "dependencies": {
+    "@bugsnag/js": "^7.22.4",
+    "@bugsnag/plugin-express": "^7.19.0",
     "@types/adm-zip": "^0.5.6",
     "@types/lodash": "^4.17.13",
+    "@types/semver": "^7.5.8",
     "adm-zip": "^0.5.16",
     "async-mutex": "^0.5.0",
     "axios": "^1.7.7",
+    "chalk": "^4.1.2",
     "commander": "^12.1.0",
     "dotenv": "^16.4.5",
     "form-data": "^4.0.1",
@@ -53,7 +59,8 @@
     "keytar": "^7.9.0",
     "lodash": "^4.17.21",
     "open": "^10.1.0",
-    "pkg-dir": "^8.0.0"
+    "pkg-dir": "^8.0.0",
+    "semver": "^7.5.4"
   },
   "devDependencies": {
     "@eslint/compat": "^1.2.4",

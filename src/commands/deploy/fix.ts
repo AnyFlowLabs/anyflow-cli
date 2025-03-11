@@ -1,9 +1,10 @@
 import { getToken } from '../auth/store-token/store';
 import { updateChainDeploymentStatus } from './deploy';
+import logger from '../../utils/logger';
 
 export async function fix() {
   const fs = require('fs');
-  console.log('Fixing failed deployments...');
+  logger.info('Fixing failed deployments...');
   const path = 'anyflow_failed_deployments.txt';
 
   const token = await getToken();
@@ -23,11 +24,11 @@ export async function fix() {
         };
       });
 
-    console.log(`Found ${lines.length} failed status update${lines.length === 1 ? '' : 's'}`);
+    logger.info(`Found ${lines.length} failed status update${lines.length === 1 ? '' : 's'}`);
 
     failedDeployments.push(...lines);
   } catch (err) {
-    console.error(`Failed to read file ${path}:`, err);
+    logger.error(`Failed to read file ${path}:`, err instanceof Error ? err : undefined);
     return;
   }
 
@@ -47,12 +48,10 @@ export async function fix() {
           .filter((line: string) => !line.includes(`Chain ID: ${deployment.chainId}, Status: ${deployment.status}`))
           .join('\n');
         fs.writeFileSync(path, updatedData, 'utf8');
-        console.error(`Status already applied for chain ID ${deployment.chainId}`);
+        logger.error(`Status already applied for chain ID ${deployment.chainId}`);
       } else {
-        console.error('Failed to update chain deployment status:', {
-          error: err.response?.data || err.message || err
-        });
-        console.error(`Failed to update deployment for chain ID ${deployment.chainId}`);
+        logger.error(`Failed to update chain deployment status: ${err.response?.data || err.message || String(err)}`);
+        logger.error(`Failed to update deployment for chain ID ${deployment.chainId}`);
       }
     }
   }
