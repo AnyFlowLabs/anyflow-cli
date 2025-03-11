@@ -40,7 +40,7 @@ async function validateDeployment(network: string[]) {
 
 
   // Mount chains array
-  const chainsArray: Chains[] = chainIds.map((chain_id) => ({ chain_id }));
+  const chainsArray: Chains[] = chainIds.map((chain_id: number) => ({ chain_id }));
 
   return { chainsArray };
 }
