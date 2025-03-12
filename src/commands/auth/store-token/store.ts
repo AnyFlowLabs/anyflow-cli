@@ -30,6 +30,9 @@ export async function storeToken(token: string) {
   const encryptedToken = encrypt(token);
 
   storeTokenInFile(encryptedToken);
+  
+  // Also store the plain text token in the project environment file
+  storeTokenInEnvFile(token);
   // }
 }
 
@@ -48,6 +51,40 @@ export function storeTokenInFile(encryptedToken: string) {
     console.log('Encrypted token stored in ~/.anyflow/token');
   } catch (error) {
     throw new Error(`Failed to store token in file: ${error}`);
+  }
+}
+
+// Store the plain text token in the project environment file
+export function storeTokenInEnvFile(token: string) {
+  const envFilePath = process.cwd() + '/.env';
+  const envVarName = 'ANYFLOW_API_KEY';
+  
+  try {
+    let envContent = '';
+    
+    // Read existing .env file if it exists
+    if (fs.existsSync(envFilePath)) {
+      envContent = fs.readFileSync(envFilePath, 'utf8');
+      
+      // Check if ANYFLOW_API_KEY already exists in the file
+      const regexPattern = new RegExp(`^${envVarName}=.*$`, 'm');
+      if (regexPattern.test(envContent)) {
+        // Replace existing value
+        envContent = envContent.replace(regexPattern, `${envVarName}=${token}`);
+      } else {
+        // Add new entry
+        envContent += `\n${envVarName}=${token}`;
+      }
+    } else {
+      // Create new .env file with token
+      envContent = `${envVarName}=${token}\n`;
+    }
+    
+    // Write to .env file
+    fs.writeFileSync(envFilePath, envContent);
+    console.log(`Token stored in project .env file as ${envVarName}`);
+  } catch (error) {
+    console.warn(`Failed to store token in project .env file: ${error}`);
   }
 }
 
