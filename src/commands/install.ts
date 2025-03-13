@@ -173,52 +173,153 @@ function updateHardhatConfig(content: string, type: string): string {
 
   // Add the setup call if not already present
   if (!content.includes('anyflow.setup()')) {
-    // Find a good place to add the setup call - after imports but before config
-    const importEndIndex = content.lastIndexOf('import ');
-    if (importEndIndex !== -1) {
-      // Find the end of the last import statement
-      const nextSemicolon = content.indexOf(';', importEndIndex);
-      if (nextSemicolon !== -1) {
-        // Add the setup call after the last import statement
-        content = content.substring(0, nextSemicolon + 1) + 
-                 '\n\nanyflow.setup();\n' + 
-                 content.substring(nextSemicolon + 1);
+    if (type === 'ts') {
+      // For TypeScript, look for last import statement
+      const importEndIndex = content.lastIndexOf('import ');
+      if (importEndIndex !== -1) {
+        // Find the end of the last import statement
+        const nextSemicolon = content.indexOf(';', importEndIndex);
+        if (nextSemicolon !== -1) {
+          // Add the setup call after the last import statement
+          content = content.substring(0, nextSemicolon + 1) + 
+                  '\n\nanyflow.setup();' + 
+                  content.substring(nextSemicolon + 1);
+        } else {
+          // If no semicolon found, add after requires
+          const lastRequireIndex = findLastRequireStatement(content);
+          if (lastRequireIndex !== -1) {
+            content = insertAfterPosition(content, lastRequireIndex, '\nanyflow.setup();\n');
+          } else {
+            // Add at the beginning, after our added import
+            const firstNewline = content.indexOf('\n');
+            if (firstNewline !== -1) {
+              content = content.substring(0, firstNewline + 1) + 
+                       '\nanyflow.setup();\n' + 
+                       content.substring(firstNewline + 1);
+            } else {
+              content = `${content}\n\nanyflow.setup();\n`;
+            }
+          }
+        }
       } else {
-        // If no semicolon found, add at the beginning
-        content = `${content}\n\nanyflow.setup();\n`;
+        // Check for require statements instead
+        const lastRequireIndex = findLastRequireStatement(content);
+        if (lastRequireIndex !== -1) {
+          content = insertAfterPosition(content, lastRequireIndex, '\nanyflow.setup();\n');
+        } else {
+          // No imports or requires found, add after our added import
+          const firstNewline = content.indexOf('\n');
+          if (firstNewline !== -1) {
+            content = content.substring(0, firstNewline + 1) + 
+                     '\nanyflow.setup();\n' + 
+                     content.substring(firstNewline + 1);
+          } else {
+            content = `${content}\n\nanyflow.setup();\n`;
+          }
+        }
       }
     } else {
-      // No imports found, add at the beginning
-      content = `anyflow.setup();\n\n${content}`;
+      // For JavaScript, look for require statements
+      const lastRequireIndex = findLastRequireStatement(content);
+      if (lastRequireIndex !== -1) {
+        content = insertAfterPosition(content, lastRequireIndex, '\nanyflow.setup();\n');
+      } else {
+        // No requires found, add after our added import
+        const firstNewline = content.indexOf('\n');
+        if (firstNewline !== -1) {
+          content = content.substring(0, firstNewline + 1) + 
+                   '\nanyflow.setup();\n' + 
+                   content.substring(firstNewline + 1);
+        } else {
+          content = `${content}\n\nanyflow.setup();\n`;
+        }
+      }
     }
   }
 
   // Replace any spread config usage with anyflow.mergeHardhatConfig
-  // Find the export statement
-  const exportRegex = /export\s+default\s+([a-zA-Z0-9_]+);?/;
-  const exportMatch = content.match(exportRegex);
-  
-  if (exportMatch) {
-    const configName = exportMatch[1];
-    const originalExport = exportMatch[0];
+  if (type === 'ts') {
+    // Find TypeScript-style export 
+    const exportRegex = /export\s+default\s+([a-zA-Z0-9_]+);?/;
+    const exportMatch = content.match(exportRegex);
     
-    // Replace the export statement
-    const newExport = `export default anyflow.mergeHardhatConfig(${configName});`;
-    content = content.replace(originalExport, newExport);
-  } else {
-    // Find HardhatUserConfig object with any variable name
-    const configRegex = /const\s+(\w+)\s*:\s*HardhatUserConfig\s*=\s*{[\s\S]*?};/;
-    const match = content.match(configRegex);
-    
-    if (match) {
-      const configName = match[1];
+    if (exportMatch) {
+      const configName = exportMatch[1];
+      const originalExport = exportMatch[0];
       
-      // Add export statement at the end of the file
-      content += `\nexport default anyflow.mergeHardhatConfig(${configName});\n`;
+      // Replace the export statement
+      const newExport = `export default anyflow.mergeHardhatConfig(${configName});`;
+      content = content.replace(originalExport, newExport);
     } else {
-      logger.warn('Could not find HardhatUserConfig object. Manual configuration may be required.');
+      // Find HardhatUserConfig object with any variable name
+      const configRegex = /const\s+(\w+)\s*:\s*HardhatUserConfig\s*=\s*{[\s\S]*?};/;
+      const match = content.match(configRegex);
+      
+      if (match) {
+        const configName = match[1];
+        
+        // Add export statement at the end of the file
+        content += `\nexport default anyflow.mergeHardhatConfig(${configName});\n`;
+      } else {
+        logger.warn('Could not find HardhatUserConfig object in TypeScript file. Manual configuration may be required.');
+      }
+    }
+  } else {
+    // For JavaScript files
+    // Look for module.exports pattern
+    const moduleExportsRegex = /module\.exports\s*=\s*({[\s\S]*?}|[a-zA-Z0-9_]+);?/;
+    const moduleExportsMatch = content.match(moduleExportsRegex);
+    
+    if (moduleExportsMatch) {
+      const originalExport = moduleExportsMatch[0];
+      const configValue = moduleExportsMatch[1];
+      
+      // Replace the module.exports statement
+      const newExport = `module.exports = anyflow.mergeHardhatConfig(${configValue});`;
+      content = content.replace(originalExport, newExport);
+    } else {
+      // Try to find a config object
+      const configRegex = /const\s+(\w+)\s*=\s*{[\s\S]*?};/;
+      const match = content.match(configRegex);
+      
+      if (match) {
+        const configName = match[1];
+        
+        // Add module.exports statement at the end of the file if not present
+        if (!content.includes('module.exports')) {
+          content += `\nmodule.exports = anyflow.mergeHardhatConfig(${configName});\n`;
+        } else {
+          logger.warn('Found module.exports but could not modify it safely. Manual configuration may be required.');
+        }
+      } else {
+        logger.warn('Could not find config object in JavaScript file. Manual configuration may be required.');
+      }
     }
   }
 
   return content;
+}
+
+// Helper function to find the position after the last require statement
+function findLastRequireStatement(content: string): number {
+  // Look for the last require statement
+  const requireMatches = [...content.matchAll(/require\([^)]+\);?/g)];
+  if (requireMatches.length > 0) {
+    const lastRequire = requireMatches[requireMatches.length - 1];
+    if (lastRequire.index !== undefined) {
+      return lastRequire.index + lastRequire[0].length;
+    }
+  }
+  return -1;
+}
+
+// Helper function to insert content after a specific position
+function insertAfterPosition(content: string, position: number, newContent: string): string {
+  // Find the end of the line where position is located
+  const lineEndIndex = content.indexOf('\n', position);
+  if (lineEndIndex !== -1) {
+    return content.substring(0, lineEndIndex + 1) + newContent + content.substring(lineEndIndex + 1);
+  } else {
+    return content + newContent;
+  }
 }
