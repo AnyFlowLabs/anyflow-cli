@@ -48,6 +48,7 @@ async function main() {
   try {
     const version = packageJson.version;
     logger.heading(`AnyFlow CLI v${version}`);
+    
     EventDispatcher.getInstance().dispatchEvent(new ProgramStartedEvent(process.argv.slice(2).join(' ')));
 
     await performFullVersionCheck();

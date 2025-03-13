@@ -4,6 +4,7 @@ import { Mutex } from 'async-mutex';
 
 import { isAuthenticated } from '../commands/auth/store-token/store';
 import { BaseEvent } from './BaseEvent';
+import { toLower } from 'lodash';
 
 export class EventDispatcher {
   private static _instance: EventDispatcher;
@@ -48,7 +49,7 @@ export class EventDispatcher {
         // }
       })
       .catch((error) => {
-        if (process.env.ANYFLOW_DEBUG) {
+        if (toLower(process.env.ANYFLOW_DEBUG) === 'true') {
           console.error('Failed to send event', event, {
             status: error.status,
             message: error.message,
