@@ -14,7 +14,9 @@ export async function deploy(network: string[], deterministicAddresses: boolean 
     process.exit(1);
   }
 
-  await requireAuthentication();
+  if (!process.env.ANYFLOW_BASE_RPC_URL?.includes('nest')) {
+    await requireAuthentication();
+  }
 
   // TODO: check if the user is inside a valid project
   // await requireProject();
