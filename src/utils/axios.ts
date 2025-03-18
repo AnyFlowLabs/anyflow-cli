@@ -1,9 +1,10 @@
 import axios from 'axios';
 
 import { getToken } from '../commands/auth/store-token/store';
+import { getEnvVar } from './env-manager';
 
 const instance = axios.create({
-  baseURL: process.env.ANYFLOW_BACKEND_URL,
+  baseURL: getEnvVar('ANYFLOW_BACKEND_URL'),
   headers: {
     'Content-Type': 'application/json',
   },
@@ -19,10 +20,11 @@ instance.interceptors.request.use(
       config.headers.Authorization = `Bearer ${token}`;
     }
 
-    // if (process.env.ANYFLOW_DEBUG) {
-    //     console.log(`HTTP Request: ${config.method?.toUpperCase()} ${config.url}`, config.data);
-    //     // console.log(`HTTP Request: ${config.method?.toUpperCase()} ${config.url}`, { data: config.data, headers: config.headers });
-    // }
+    const debug = getEnvVar('ANYFLOW_DEBUG') === 'true';
+    if (debug) {
+      console.log(`HTTP Request: ${config.method?.toUpperCase()} ${config.url}`, config.data);
+      // console.log(`HTTP Request: ${config.method?.toUpperCase()} ${config.url}`, { data: config.data, headers: config.headers });
+    }
 
     return config;
   },
@@ -33,16 +35,18 @@ instance.interceptors.request.use(
 
 instance.interceptors.response.use(
   (response) => {
-    // if (process.env.ANYFLOW_DEBUG) {
-    //     console.log(`HTTP Response: ${response.config.method?.toUpperCase()} ${response.config.url}`, response.data);
-    // }
+    const debug = getEnvVar('ANYFLOW_DEBUG') === 'true';
+    if (debug) {
+      console.log(`HTTP Response: ${response.config.method?.toUpperCase()} ${response.config.url}`, response.data);
+    }
 
     return response;
   },
   (error) => {
-    // if (process.env.ANYFLOW_DEBUG) {
-    //     console.log(`HTTP Response: ${error.response?.config.method?.toUpperCase()} ${error.response?.config.url}`, error?.response.data);
-    // }
+    const debug = getEnvVar('ANYFLOW_DEBUG') === 'true';
+    if (debug) {
+      console.log(`HTTP Response: ${error.response?.config.method?.toUpperCase()} ${error.response?.config.url}`, error?.response?.data);
+    }
 
     if (error.response?.config?.url === 'api/events') {
       return Promise.reject(error);

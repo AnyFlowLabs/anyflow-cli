@@ -1,59 +1,45 @@
-import fs from 'fs';
-import path from 'path';
-
-import { getProjectRoot } from '../utils/getProjectRoot';
 import { getToken } from './auth/store-token/store';
 import logger from '../utils/logger';
+import { storeEnvVars } from '../utils/env-manager';
 
 export async function init() {
   // TODO: ensure is hardhat project
-  await ensureEnvFile();
+  await setupEnvironmentVars();
 }
 
-async function ensureEnvFile() {
-  const rootDir = await getProjectRoot();
-  const envPath = path.join(rootDir, '.env');
-
-  if (!fs.existsSync(envPath)) {
-    fs.writeFileSync(envPath, '');
+async function setupEnvironmentVars() {
+  const token = await getToken();
+  
+  // Create vars object from existing environment variables
+  const vars: Record<string, string> = {};
+  
+  if (process.env.ANYFLOW_BASE_RPC_URL) {
+    vars.ANYFLOW_BASE_RPC_URL = process.env.ANYFLOW_BASE_RPC_URL;
+  }
+  
+  if (process.env.ANYFLOW_BACKEND_URL) {
+    vars.ANYFLOW_BACKEND_URL = process.env.ANYFLOW_BACKEND_URL;
+  }
+  
+  if (process.env.ANYFLOW_FRONTEND_URL) {
+    vars.ANYFLOW_FRONTEND_URL = process.env.ANYFLOW_FRONTEND_URL;
+  }
+  
+  // Only add token if it exists
+  if (token) {
+    vars.ANYFLOW_API_KEY = token;
   }
 
-  const envContent = fs.readFileSync(envPath, 'utf8');
-  // [TEMP] Disabling encryption for now [AF-281]
-  // await checkKey(envContent, envPath);
-  await checkEnvironmentVars(envContent, envPath);
+  // Add debug flag if set
+  if (process.env.ANYFLOW_DEBUG) {
+    vars.ANYFLOW_DEBUG = process.env.ANYFLOW_DEBUG;
+  }
 
-  logger.success('Created .env file with default configuration.');
+  // Store variables in .anyflow/env.json
+  storeEnvVars(vars);
+
+  logger.success('Environment variables configured successfully.');
+  if (process.env.NODE_ENV) {
+    logger.info(`Environment: ${process.env.NODE_ENV}`);
+  }
 }
-
-async function checkEnvironmentVars(envContent: string, envPath: string) {
-  const vars = {
-    ANYFLOW_BASE_RPC_URL: process.env.ANYFLOW_BASE_RPC_URL,
-    ANYFLOW_BACKEND_URL: process.env.ANYFLOW_BACKEND_URL,
-    ANYFLOW_API_KEY: await getToken(),
-  };
-
-  let updated = false;
-  for (const [key, value] of Object.entries(vars)) {
-    if (!envContent.includes(`${key}=`)) {
-      fs.appendFileSync(envPath, `\n${key}=${value}`);
-      updated = true;
-    }
-  }
-
-  if (updated) {
-    logger.info('Updated .env file with missing environment variables.');
-  }
-}
-
-// async function checkKey(envContent: string, envPath: string) {
-//   if (envContent.includes('ANYFLOW_ENCRYPTION_KEY=')) {
-//     logger.warn('ANYFLOW_ENCRYPTION_KEY already exists in .env file.');
-//     return
-//   }
-
-//   const key = crypto.randomBytes(32).toString('hex');
-//   fs.appendFileSync(envPath, `\nANYFLOW_ENCRYPTION_KEY=${key}\n`);
-
-//   logger.info('Added ANYFLOW_ENCRYPTION_KEY to existing .env file in the project root.');
-// }
