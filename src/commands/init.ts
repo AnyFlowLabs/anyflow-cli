@@ -34,6 +34,9 @@ async function setupEnvironmentVars() {
   if (process.env.ANYFLOW_DEBUG) {
     vars.ANYFLOW_DEBUG = process.env.ANYFLOW_DEBUG;
   }
+  
+  vars.HARDHAT_IGNITION_CONFIRM_DEPLOYMENT = process.env.HARDHAT_IGNITION_CONFIRM_DEPLOYMENT || 'false';
+  vars.HARDHAT_IGNITION_CONFIRM_RESET = process.env.HARDHAT_IGNITION_CONFIRM_RESET || 'false';
 
   // Store variables in .anyflow/env.json
   storeEnvVars(vars);
