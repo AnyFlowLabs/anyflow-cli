@@ -94,13 +94,18 @@ async function main() {
       .option('--networks <network...>', 'Specify the network(s) to deploy to')
       .option('--deterministic-addresses', 'Use deterministic addresses for deployment')
       .option('-da', 'Use deterministic addresses for deployment')
-      .option('-deployment-id <deployment-id>', 'Specify the deployment ID (when it already exists)')
-      .option('-chain-deployment-id <chain-deployment-id>', 'Specify the chain deployment ID (when it already exists)')
+      .option('--deployment-id <deployment-id>', 'Specify the deployment ID (when it already exists)')
+      .option('--chain-deployment-id <chain-deployment-id>', 'Specify the chain deployment ID (when it already exists)')
       .action((options) => {
         logger.info('Parsed networks: ' + JSON.stringify(options.networks));
         const da = options.deterministicAddresses || options.da || false;
         logger.info('Deterministic addresses option: ' + da);
-        return deploy(options.networks, da);
+        return deploy(
+          options.networks,
+          da,
+          options.deploymentId,
+          options.chainDeploymentId
+        );
       })
       .hook('postAction', exitHandler);
 

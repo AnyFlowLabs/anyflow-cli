@@ -1,5 +1,5 @@
 import { requireAuthentication } from '../auth/store-token/store';
-import { writeChainDeploymentId , createDeployment } from './deployment';
+import { writeChainDeploymentId, createDeployment } from './deployment';
 import { sendFile, zipFile } from './artifacts';
 import { runCommand } from './command';
 import axios from '../../utils/axios';
@@ -8,7 +8,12 @@ import { DeploymentScriptStartedEvent } from '../../events/DeploymentScriptStart
 import { DeploymentScriptEndedEvent } from '../../events/DeploymentScriptEndedEvent';
 import logger from '../../utils/logger';
 
-export async function deploy(network: string[], deterministicAddresses: boolean = false) {
+export async function deploy(
+  network: string[],
+  deterministicAddresses: boolean = false,
+  deploymentId?: string,
+  chainDeploymentId?: string
+) {
   if (!network || network.length < 1) {
     logger.error('Please specify a network using --networks');
     process.exit(1);
@@ -21,11 +26,22 @@ export async function deploy(network: string[], deterministicAddresses: boolean 
   // TODO: check if the user is inside a valid project
   // await requireProject();
 
-  logger.info('Creating deployment...');
+  let deployment;
+  if (deploymentId) {
+    logger.info('Using existing deployment...');
+    try {
+      const response = await axios.get(`api/deployments/${deploymentId}`);
+      deployment = response.data;
+    } catch (error) {
+      logger.error(`Failed to fetch deployment with ID ${deploymentId}`);
+      process.exit(1);
+    }
+  } else {
+    logger.info('Creating deployment...');
+    deployment = await createDeployment(network, deterministicAddresses);
+    logger.success('Deployment created');
+  }
 
-  const deployment = await createDeployment(network, deterministicAddresses);
-
-  logger.success('Deployment created');
   logger.info(`Access your deployment information at: ${process.env.ANYFLOW_FRONTEND_URL}/deployments/${deployment.data.id}`);
   logger.info('Preparing artifacts for deployment...');
 
@@ -39,6 +55,11 @@ export async function deploy(network: string[], deterministicAddresses: boolean 
   logger.heading('Deploying to chains...');
 
   for (const chainDeployment of chainDeployments) {
+    // Skip if chainDeploymentId is provided and doesn't match current chain deployment
+    if (chainDeploymentId && chainDeployment.id.toString() !== chainDeploymentId) {
+      continue;
+    }
+
     logger.info(`Starting deployment to chain ID ${chainDeployment.chain_id}...`);
     await writeChainDeploymentId(chainDeployment.id);
 
@@ -87,7 +108,7 @@ export async function deploy(network: string[], deterministicAddresses: boolean 
     logger.error('Deployment failed!');
     logger.error(`Failed chains: ${failedChains.join(', ')}`);
   }
-  
+
   logger.info(`Access your deployment information at: ${process.env.ANYFLOW_FRONTEND_URL}/deployments/${deployment.data.id}`);
 }
 
