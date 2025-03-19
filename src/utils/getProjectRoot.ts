@@ -8,6 +8,6 @@ export async function getProjectRoot() {
     console.error('Error: Could not find the project root');
     process.exit(1);
   }
-    
+
   return rootDir;
 }

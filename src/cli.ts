@@ -48,17 +48,27 @@ async function main() {
   try {
     const version = packageJson.version;
     logger.heading(`AnyFlow CLI v${version}`);
-    
-    EventDispatcher.getInstance().dispatchEvent(new ProgramStartedEvent(process.argv.slice(2).join(' ')));
-
-    await performFullVersionCheck();
 
     const program = new Command();
 
     program
       .name('anyflow')
+      .option('--skip-events', 'Skip sending telemetry events')
       .description('The CLI for AnyFlow operations. Check https://docs.anyflow.pro/docs/anyflow_cli/ to learn more.')
       .version(version);
+
+    // Set skip-events flag before parsing arguments
+    const preProgram = new Command();
+    preProgram.option('--skip-events', 'Skip sending telemetry events');
+    preProgram.parse(process.argv);
+    const options = preProgram.opts();
+
+    // Set the skip-events flag in EventDispatcher
+    EventDispatcher.getInstance().setSkipEvents(!!options.skipEvents);
+
+    EventDispatcher.getInstance().dispatchEvent(new ProgramStartedEvent(process.argv.slice(2).join(' ')));
+
+    await performFullVersionCheck();
 
     program
       .command('init')
@@ -84,6 +94,8 @@ async function main() {
       .option('--networks <network...>', 'Specify the network(s) to deploy to')
       .option('--deterministic-addresses', 'Use deterministic addresses for deployment')
       .option('-da', 'Use deterministic addresses for deployment')
+      .option('-deployment-id <deployment-id>', 'Specify the deployment ID (when it already exists)')
+      .option('-chain-deployment-id <chain-deployment-id>', 'Specify the chain deployment ID (when it already exists)')
       .action((options) => {
         logger.info('Parsed networks: ' + JSON.stringify(options.networks));
         const da = options.deterministicAddresses || options.da || false;
@@ -138,7 +150,7 @@ async function main() {
         { originalError: error }
       );
     }
-    
+
     process.exit(1);
   }
 }

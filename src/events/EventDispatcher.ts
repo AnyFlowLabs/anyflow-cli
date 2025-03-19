@@ -11,6 +11,7 @@ export class EventDispatcher {
   private pendingEvents: BaseEvent[] = [];
   private mutex = new Mutex();
   private sessionId: string;
+  private skipEvents: boolean = false;
 
   private constructor() {
     this.sessionId = randomUUID();
@@ -23,6 +24,10 @@ export class EventDispatcher {
     return this._instance;
   }
 
+  public setSkipEvents(skip: boolean): void {
+    this.skipEvents = skip;
+  }
+
   /**
      * Dispatches an event without waiting for it to be sent.
      * Also does not break if the event fails to send.
@@ -30,6 +35,10 @@ export class EventDispatcher {
      * @param event 
      */
   public async dispatchEvent(event: BaseEvent): Promise<void> {
+    if (this.skipEvents) {
+      return;
+    }
+
     // if (process.env.ANYFLOW_DEBUG) {
     //     console.log("Dispatching event...", event);
     // }
@@ -79,7 +88,7 @@ export class EventDispatcher {
       if (Date.now() - start > timeout) {
         if (process.env.ANYFLOW_DEBUG) {
           throw new Error('Timed out waiting for all events to send.');
-        } else{
+        } else {
           break;
         }
       }
