@@ -30,7 +30,7 @@ export async function storeToken(token: string) {
   const encryptedToken = encrypt(token);
 
   storeTokenInFile(encryptedToken);
-  
+
   // Also store the plain text token in the project environment file
   storeTokenInEnvFile(token);
   // }
@@ -58,14 +58,14 @@ export function storeTokenInFile(encryptedToken: string) {
 export function storeTokenInEnvFile(token: string) {
   const envFilePath = process.cwd() + '/.env';
   const envVarName = 'ANYFLOW_API_KEY';
-  
+
   try {
     let envContent = '';
-    
+
     // Read existing .env file if it exists
     if (fs.existsSync(envFilePath)) {
       envContent = fs.readFileSync(envFilePath, 'utf8');
-      
+
       // Check if ANYFLOW_API_KEY already exists in the file
       const regexPattern = new RegExp(`^${envVarName}=.*$`, 'm');
       if (regexPattern.test(envContent)) {
@@ -79,7 +79,7 @@ export function storeTokenInEnvFile(token: string) {
       // Create new .env file with token
       envContent = `${envVarName}=${token}\n`;
     }
-    
+
     // Write to .env file
     fs.writeFileSync(envFilePath, envContent);
     console.log(`Token stored in project .env file as ${envVarName}`);
@@ -135,4 +135,11 @@ export async function requireAuthentication(): Promise<void> {
     console.log('You need to authenticate first. Run "anyflow auth".');
     process.exit(1);
   }
+}
+
+/**
+ * When the CLI is used inside the Anyflow runner, authentication is handled by the runner
+ */
+export function isAuthenticationRequired(): boolean {
+  return process.env.ANYFLOW_BASE_RPC_URL?.includes('nest') ?? false;
 }

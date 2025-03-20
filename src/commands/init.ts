@@ -5,40 +5,52 @@ import { getProjectRoot } from '../utils/getProjectRoot';
 import { getToken } from './auth/store-token/store';
 import logger from '../utils/logger';
 
-export async function init() {
-  // TODO: ensure is hardhat project
-  await ensureEnvFile();
-}
-
-async function ensureEnvFile() {
+export async function init(options: { baseRpcUrl?: string; backendUrl?: string } = {}) {
   const rootDir = await getProjectRoot();
   const envPath = path.join(rootDir, '.env');
 
-  if (!fs.existsSync(envPath)) {
-    fs.writeFileSync(envPath, '');
-  }
+  // TODO: ensure is hardhat project
+  await ensureEnvFile(envPath);
 
   const envContent = fs.readFileSync(envPath, 'utf8');
   // [TEMP] Disabling encryption for now [AF-281]
   // await checkKey(envContent, envPath);
-  await checkEnvironmentVars(envContent, envPath);
+  await checkEnvironmentVars(envContent, envPath, options);
 
   logger.success('Created .env file with default configuration.');
 }
 
-async function checkEnvironmentVars(envContent: string, envPath: string) {
+async function ensureEnvFile(envPath: string) {
+  if (!fs.existsSync(envPath)) {
+    fs.writeFileSync(envPath, '');
+  }
+}
+
+async function checkEnvironmentVars(
+  envContent: string,
+  envPath: string,
+  options: { baseRpcUrl?: string; backendUrl?: string } = {}
+) {
   const vars = {
-    ANYFLOW_BASE_RPC_URL: process.env.ANYFLOW_BASE_RPC_URL,
-    ANYFLOW_BACKEND_URL: process.env.ANYFLOW_BACKEND_URL,
-    ANYFLOW_API_KEY: await getToken(),
+    ANYFLOW_BASE_RPC_URL: options.baseRpcUrl || process.env.ANYFLOW_BASE_RPC_URL,
+    ANYFLOW_BACKEND_URL: options.backendUrl || process.env.ANYFLOW_BACKEND_URL,
+    ANYFLOW_API_KEY: '',
   };
+
+  const token = await getToken()
+
+  if (token) {
+    vars.ANYFLOW_API_KEY = token;
+  }
 
   let updated = false;
   for (const [key, value] of Object.entries(vars)) {
     if (!envContent.includes(`${key}=`)) {
       fs.appendFileSync(envPath, `\n${key}=${value}`);
-      updated = true;
+    } else {
+      envContent = envContent.replace(`${key}=${envContent.split(`${key}=`)[1].split('\n')[0]}`, `${key}=${value}`);
     }
+    updated = true;
   }
 
   if (updated) {

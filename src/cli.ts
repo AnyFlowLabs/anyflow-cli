@@ -72,7 +72,12 @@ async function main() {
     program
       .command('init')
       .description('Initialize the AnyFlow CLI')
-      .action(init)
+      .option('--base-rpc-url <url>', 'Specify a custom base RPC URL')
+      .option('--backend-url <url>', 'Specify a custom backend URL')
+      .action((options) => init({
+        baseRpcUrl: options.baseRpcUrl,
+        backendUrl: options.backendUrl
+      }))
       .hook('postAction', exitHandler);
 
     program

@@ -1,4 +1,4 @@
-import { requireAuthentication } from '../auth/store-token/store';
+import { isAuthenticationRequired, requireAuthentication } from '../auth/store-token/store';
 import { writeChainDeploymentId, createDeployment } from './deployment';
 import { sendFile, zipFile } from './artifacts';
 import { runCommand } from './command';
@@ -19,7 +19,8 @@ export async function deploy(
     process.exit(1);
   }
 
-  if (!process.env.ANYFLOW_BASE_RPC_URL?.includes('nest')) {
+  // When the CLI is used inside the Anyflow runner, authentication is handled by the runner
+  if (isAuthenticationRequired()) {
     await requireAuthentication();
   }
 
@@ -43,10 +44,13 @@ export async function deploy(
   }
 
   logger.info(`Access your deployment information at: ${process.env.ANYFLOW_FRONTEND_URL}/deployments/${deployment.data.id}`);
-  logger.info('Preparing artifacts for deployment...');
 
-  const zipFilePath = await zipFile();
-  await sendFile(zipFilePath, deployment.data.id);
+  if (!deploymentId) {
+    logger.info('Preparing artifacts for deployment...');
+
+    const zipFilePath = await zipFile();
+    await sendFile(zipFilePath, deployment.data.id);
+  }
 
   const chainDeployments: { id: number, chain_id: number }[] = extractIds(deployment);
   const successfulChains: number[] = [];
