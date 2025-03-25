@@ -47,14 +47,15 @@ async function checkEnvironmentVars(
   for (const [key, value] of Object.entries(vars)) {
     if (!envContent.includes(`${key}=`)) {
       fs.appendFileSync(envPath, `\n${key}=${value}`);
+      updated = true;
     } else {
       envContent = envContent.replace(`${key}=${envContent.split(`${key}=`)[1].split('\n')[0]}`, `${key}=${value}`);
+      updated = true;
     }
-    updated = true;
   }
 
   if (updated) {
-    logger.info('Updated .env file with missing environment variables.');
+    logger.info('Updated .env file with missing environment variables.', { envContent });
   }
 }
 

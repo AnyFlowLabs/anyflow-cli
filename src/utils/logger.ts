@@ -9,8 +9,8 @@ export enum LogLevel {
 }
 
 // Set default log level based on environment
-let currentLogLevel: LogLevel = process.env.NODE_ENV === 'production' 
-  ? LogLevel.INFO 
+let currentLogLevel: LogLevel = process.env.NODE_ENV === 'production'
+  ? LogLevel.INFO
   : LogLevel.DEBUG;
 
 export function setLogLevel(level: LogLevel): void {
@@ -31,36 +31,36 @@ function formatMessage(prefix: string, message: string): string {
 /**
  * Debug level logging - only shown in development
  */
-export function debug(message: string): void {
+export function debug(message: string, ...args: any[]): void {
   if (currentLogLevel <= LogLevel.DEBUG) {
-    console.debug(formatMessage(chalk.gray('DEBUG:'), message));
+    console.debug(formatMessage(chalk.gray('DEBUG:'), message), ...args);
   }
 }
 
 /**
  * Info level logging
  */
-export function info(message: string): void {
+export function info(message: string, ...args: any[]): void {
   if (currentLogLevel <= LogLevel.INFO) {
-    console.info(formatMessage(chalk.blue('INFO:'), message));
+    console.info(formatMessage(chalk.blue('INFO:'), message), ...args);
   }
 }
 
 /**
  * Success level logging
  */
-export function success(message: string): void {
+export function success(message: string, ...args: any[]): void {
   if (currentLogLevel <= LogLevel.SUCCESS) {
-    console.log(formatMessage(chalk.green('SUCCESS:'), message));
+    console.log(formatMessage(chalk.green('SUCCESS:'), message), ...args);
   }
 }
 
 /**
  * Warning level logging
  */
-export function warn(message: string): void {
+export function warn(message: string, ...args: any[]): void {
   if (currentLogLevel <= LogLevel.WARN) {
-    console.warn(formatMessage(chalk.yellow('WARNING:'), message));
+    console.warn(formatMessage(chalk.yellow('WARNING:'), message), ...args);
   }
 }
 
@@ -94,14 +94,14 @@ export function spinner(message: string): { succeed: Function; fail: Function; u
   if (currentLogLevel > LogLevel.INFO) {
     // Return a no-op if log level is higher than INFO
     return {
-      succeed: () => {},
-      fail: () => {},
-      update: () => {},
+      succeed: () => { },
+      fail: () => { },
+      update: () => { },
     };
   }
 
   process.stdout.write(`${chalk.cyan('⟳')} ${message}`);
-  
+
   return {
     succeed: (successMessage?: string) => {
       process.stdout.clearLine(0);

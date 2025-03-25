@@ -35,7 +35,7 @@ export class EventDispatcher {
      * @param event 
      */
   public async dispatchEvent(event: BaseEvent): Promise<void> {
-    if (this.skipEvents) {
+    if (this.skipEvents && !event.is_essential) {
       return;
     }
 

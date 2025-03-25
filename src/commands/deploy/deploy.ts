@@ -45,6 +45,8 @@ export async function deploy(
 
   logger.info(`Access your deployment information at: ${process.env.ANYFLOW_FRONTEND_URL}/deployments/${deployment.data.id}`);
 
+  // Artifacts are only sent if the deployment is new
+  // When inside the runner, the CLI has already access to the artifacts
   if (!deploymentId) {
     logger.info('Preparing artifacts for deployment...');
 
@@ -67,7 +69,6 @@ export async function deploy(
     logger.info(`Starting deployment to chain ID ${chainDeployment.chain_id}...`);
     await writeChainDeploymentId(chainDeployment.id);
 
-    // await updateChainDeploymentStatus(chain.id, 'deploying');
     const command = 'npm';
     const args = ['run', 'deploy', '--', '--network', chainDeployment.chain_id.toString()];
     const fullCommand = `${command} ${args.join(' ')}`;
@@ -80,7 +81,6 @@ export async function deploy(
     const end = performance.now();
     const executionTime = Math.floor(end - start);
 
-    // await updateChainDeploymentStatus(chain.id, 'finished');
     EventDispatcher.getInstance().dispatchEvent(new DeploymentScriptEndedEvent(chainDeployment.id, exitCode, stdout, stderr, executionTime));
 
     if (exitCode != 0) {

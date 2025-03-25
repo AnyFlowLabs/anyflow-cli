@@ -101,7 +101,6 @@ async function main() {
       .option('--chain-deployment-id <chain-deployment-id>', 'Specify the chain deployment ID (when it already exists)')
       .action((options) => {
         const da = options.deterministicAddresses || options.da || false;
-        logger.info('Deterministic addresses option: ' + da);
         return deploy(
           options.networks,
           da,

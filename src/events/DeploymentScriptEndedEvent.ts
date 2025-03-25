@@ -1,6 +1,8 @@
 import { BaseEvent } from './BaseEvent';
 
 export class DeploymentScriptEndedEvent extends BaseEvent {
+  is_essential: boolean = true;
+
   constructor(
     chainDeploymentId: number,
     exitCode: number,

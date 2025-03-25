@@ -3,13 +3,24 @@ import { randomUUID } from 'crypto';
 import packageJson from '../../package.json';
 import axios from '../utils/axios';
 
-export class BaseEvent {
+export interface IBaseEvent {
   event_id: string;
   event_type: string;
   payload: any;
   timestamp?: string;
   session_id?: string;
   cli_version?: string;
+  is_essential?: boolean;
+}
+
+export abstract class BaseEvent implements IBaseEvent {
+  event_id: string;
+  event_type: string;
+  payload: any;
+  timestamp?: string;
+  session_id?: string;
+  cli_version?: string;
+  is_essential?: boolean;
 
   static EVENT_TYPE_PREFIX = 'CLI_';
 
