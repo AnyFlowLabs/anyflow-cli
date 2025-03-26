@@ -1,5 +1,5 @@
 import { requireAuthentication } from '../auth/store-token/store';
-import { writeChainDeploymentId , createDeployment } from './deployment';
+import { createDeployment } from './deployment';
 import { sendFile, zipFile } from './artifacts';
 import { runCommand } from './command';
 import axios from '../../utils/axios';
@@ -7,6 +7,7 @@ import { EventDispatcher } from '../../events/EventDispatcher';
 import { DeploymentScriptStartedEvent } from '../../events/DeploymentScriptStartedEvent';
 import { DeploymentScriptEndedEvent } from '../../events/DeploymentScriptEndedEvent';
 import logger from '../../utils/logger';
+import { getEnvVar } from '../../utils/env-manager';
 
 export async function deploy(network: string[], deterministicAddresses: boolean = false) {
   if (!network || network.length < 1) {
@@ -14,7 +15,17 @@ export async function deploy(network: string[], deterministicAddresses: boolean 
     process.exit(1);
   }
 
-  if (!process.env.ANYFLOW_BASE_RPC_URL?.includes('nest')) {
+  // Check for required environment variables
+  const baseRpcUrl = getEnvVar('ANYFLOW_BASE_RPC_URL');
+  const frontendUrl = getEnvVar('ANYFLOW_FRONTEND_URL');
+
+  if (!baseRpcUrl || !frontendUrl) {
+    logger.error('Required environment variables are missing. Please run "anyflow init" first.');
+    process.exit(1);
+  }
+
+  // Check if we need authentication
+  if (!baseRpcUrl.includes('nest')) {
     await requireAuthentication();
   }
 
@@ -26,7 +37,7 @@ export async function deploy(network: string[], deterministicAddresses: boolean 
   const deployment = await createDeployment(network, deterministicAddresses);
 
   logger.success('Deployment created');
-  logger.info(`Access your deployment information at: ${process.env.ANYFLOW_FRONTEND_URL}/deployments/${deployment.data.id}`);
+  logger.info(`Access your deployment information at: ${frontendUrl}/deployments/${deployment.data.id}`);
   logger.info('Preparing artifacts for deployment...');
 
   const zipFilePath = await zipFile();
@@ -40,9 +51,7 @@ export async function deploy(network: string[], deterministicAddresses: boolean 
 
   for (const chainDeployment of chainDeployments) {
     logger.info(`Starting deployment to chain ID ${chainDeployment.chain_id}...`);
-    await writeChainDeploymentId(chainDeployment.id);
 
-    // await updateChainDeploymentStatus(chain.id, 'deploying');
     const command = 'npm';
     const args = ['run', 'deploy', '--', '--network', chainDeployment.chain_id.toString()];
     const fullCommand = `${command} ${args.join(' ')}`;
@@ -51,11 +60,14 @@ export async function deploy(network: string[], deterministicAddresses: boolean 
     EventDispatcher.getInstance().dispatchEvent(new DeploymentScriptStartedEvent(chainDeployment.id, fullCommand));
 
     const start = performance.now();
-    const { exitCode, stdout, stderr } = await runCommand(command, args);
+    const { exitCode, stdout, stderr } = await runCommand(command, args, {
+      env: {
+        ANYFLOW_CHAIN_DEPLOYMENT_ID: chainDeployment.id.toString()
+      }
+    });
     const end = performance.now();
     const executionTime = Math.floor(end - start);
 
-    // await updateChainDeploymentStatus(chain.id, 'finished');
     EventDispatcher.getInstance().dispatchEvent(new DeploymentScriptEndedEvent(chainDeployment.id, exitCode, stdout, stderr, executionTime));
 
     if (exitCode != 0) {
@@ -87,8 +99,8 @@ export async function deploy(network: string[], deterministicAddresses: boolean 
     logger.error('Deployment failed!');
     logger.error(`Failed chains: ${failedChains.join(', ')}`);
   }
-  
-  logger.info(`Access your deployment information at: ${process.env.ANYFLOW_FRONTEND_URL}/deployments/${deployment.data.id}`);
+
+  logger.info(`Access your deployment information at: ${frontendUrl}/deployments/${deployment.data.id}`);
 }
 
 function extractIds(deployment: any) {

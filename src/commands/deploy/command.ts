@@ -6,6 +6,10 @@ type CommandReturnType = {
   stderr: string;
 }
 
+type CommandOptions = {
+  env?: NodeJS.ProcessEnv;
+}
+
 /**
  * Run a command.
  * Will return the exit code, stdout and stderr of the command
@@ -13,10 +17,16 @@ type CommandReturnType = {
  * The caller should check the exit code to determine if the command
  * was successful or not.
  */
-export async function runCommand(command: string, args: string[]): Promise<CommandReturnType> {
+export async function runCommand(command: string, args: string[], options: CommandOptions = {}): Promise<CommandReturnType> {
   let child;
   try {
-    child = spawn(command, args, { shell: true });
+    child = spawn(command, args, {
+      shell: true,
+      env: {
+        ...process.env,
+        ...options.env
+      }
+    });
   } catch (err: unknown) {
     return Promise.resolve({
       exitCode: 1,

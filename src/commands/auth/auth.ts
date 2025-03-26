@@ -3,6 +3,7 @@ import logger from '../../utils/logger';
 
 import { isAuthenticated, storeToken } from './store-token/store';
 import { handleAuthError } from '../error/auth-error';
+import { getEnvVar } from '../../utils/env-manager';
 
 // Main authentication function
 export async function authenticate() {
@@ -11,7 +12,13 @@ export async function authenticate() {
     process.exit(0);
   }
 
-  const tokenUrl = `${process.env.ANYFLOW_FRONTEND_URL}/settings/api`;
+  const frontendUrl = getEnvVar('ANYFLOW_FRONTEND_URL');
+  if (!frontendUrl) {
+    logger.error('ANYFLOW_FRONTEND_URL is not set. Please run "anyflow init" first.');
+    process.exit(1);
+  }
+  
+  const tokenUrl = `${frontendUrl}/settings/api`;
 
   logger.info('Opening your browser to authenticate...');
   logger.info(`URL: ${tokenUrl}`);
