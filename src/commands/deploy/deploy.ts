@@ -1,5 +1,5 @@
 import { requireAuthentication } from '../auth/store-token/store';
-import { writeChainDeploymentId , createDeployment } from './deployment';
+import { createDeployment } from './deployment';
 import { sendFile, zipFile } from './artifacts';
 import { runCommand } from './command';
 import axios from '../../utils/axios';
@@ -18,7 +18,7 @@ export async function deploy(network: string[], deterministicAddresses: boolean 
   // Check for required environment variables
   const baseRpcUrl = getEnvVar('ANYFLOW_BASE_RPC_URL');
   const frontendUrl = getEnvVar('ANYFLOW_FRONTEND_URL');
-  
+
   if (!baseRpcUrl || !frontendUrl) {
     logger.error('Required environment variables are missing. Please run "anyflow init" first.');
     process.exit(1);
@@ -51,7 +51,6 @@ export async function deploy(network: string[], deterministicAddresses: boolean 
 
   for (const chainDeployment of chainDeployments) {
     logger.info(`Starting deployment to chain ID ${chainDeployment.chain_id}...`);
-    await writeChainDeploymentId(chainDeployment.id);
 
     const command = 'npm';
     const args = ['run', 'deploy', '--', '--network', chainDeployment.chain_id.toString()];
@@ -61,7 +60,11 @@ export async function deploy(network: string[], deterministicAddresses: boolean 
     EventDispatcher.getInstance().dispatchEvent(new DeploymentScriptStartedEvent(chainDeployment.id, fullCommand));
 
     const start = performance.now();
-    const { exitCode, stdout, stderr } = await runCommand(command, args);
+    const { exitCode, stdout, stderr } = await runCommand(command, args, {
+      env: {
+        ANYFLOW_CHAIN_DEPLOYMENT_ID: chainDeployment.id.toString()
+      }
+    });
     const end = performance.now();
     const executionTime = Math.floor(end - start);
 
@@ -96,7 +99,7 @@ export async function deploy(network: string[], deterministicAddresses: boolean 
     logger.error('Deployment failed!');
     logger.error(`Failed chains: ${failedChains.join(', ')}`);
   }
-  
+
   logger.info(`Access your deployment information at: ${frontendUrl}/deployments/${deployment.data.id}`);
 }
 

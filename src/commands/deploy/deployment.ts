@@ -86,9 +86,3 @@ async function getNodeVersion() {
 
   return allowedVersions.includes(extractedVersion) ? extractedVersion : defaultVersion;
 }
-
-export async function writeChainDeploymentId(id: string | number) {
-  // Store in .anyflow/env.json
-  updateEnvVar('ANYFLOW_CHAIN_DEPLOYMENT_ID', id.toString());
-  console.log(`Added ANYFLOW_CHAIN_DEPLOYMENT_ID=${id} to environment configuration.`);
-}
