@@ -1,6 +1,7 @@
 import { memoize } from 'lodash';
 import { getUser } from '../api/user';
 import { updateEnvVar, getEnvVar } from '../../../utils/env-manager';
+import { EXIT_CODE_GENERIC_ERROR } from '../../../utils/exitCodes';
 
 // Store the token securely
 export async function storeToken(token: string) {
@@ -36,7 +37,7 @@ export const getUserId = memoize(async function (): Promise<number> {
 export async function requireAuthentication(): Promise<void> {
   if (!(await isAuthenticated())) {
     console.log('You need to authenticate first. Run "anyflow auth".');
-    process.exit(1);
+    process.exit(EXIT_CODE_GENERIC_ERROR);
   }
 }
 

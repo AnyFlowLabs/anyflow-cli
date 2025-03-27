@@ -5,6 +5,7 @@ import { getProjectRoot } from '../../utils/getProjectRoot';
 import { aliasesToChainId, getChainAliases, isChainAvailable } from './chains';
 import axios from '../../utils/axios';
 import { updateEnvVar } from '../../utils/env-manager';
+import { EXIT_CODE_GENERIC_ERROR } from '../../utils/exitCodes';
 
 type Chains = {
   chain_id: number
@@ -26,7 +27,7 @@ async function validateDeployment(network: string[]) {
     console.error(`Unsupported network alias given: "${invalid}" remove and try again`);
     const supportedChains = await getChainAliases();
     console.log(`\nSupported chains:\n${supportedChains}\n`);
-    process.exit(1);
+    process.exit(EXIT_CODE_GENERIC_ERROR);
   }
 
   // Check if all selected chains are available
@@ -35,7 +36,7 @@ async function validateDeployment(network: string[]) {
 
     if (!isAvailable) {
       console.error(`Chain with ID ${chainId} is not available for deployment. Check our docs: https://docs.anyflow.pro/docs/faq#why-is-the-chain-i-want-to-deploy-to-disabled`);
-      process.exit(1);
+      process.exit(EXIT_CODE_GENERIC_ERROR);
     }
   }
 

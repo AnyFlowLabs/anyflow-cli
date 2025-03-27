@@ -1,24 +1,25 @@
 import { getToken } from './auth/store-token/store';
 import logger from '../utils/logger';
 import { storeEnvVars } from '../utils/env-manager';
+import { globalOptions } from '../utils/globalOptions';
 
-export async function init(options: { baseRpcUrl?: string; backendUrl?: string } = {}) {
+export async function init() {
   // TODO: ensure is hardhat project
-  await setupEnvironmentVars(options);
+  await setupEnvironmentVars();
 }
 
-async function setupEnvironmentVars(options: { baseRpcUrl?: string; backendUrl?: string } = {}) {
+async function setupEnvironmentVars() {
   const token = await getToken();
 
   // Create vars object from existing environment variables
   const vars: Record<string, string> = {};
 
   if (process.env.ANYFLOW_BASE_RPC_URL) {
-    vars.ANYFLOW_BASE_RPC_URL = options.baseRpcUrl || process.env.ANYFLOW_BASE_RPC_URL;
+    vars.ANYFLOW_BASE_RPC_URL = globalOptions.getOption('baseRpcUrl') || process.env.ANYFLOW_BASE_RPC_URL;
   }
 
   if (process.env.ANYFLOW_BACKEND_URL) {
-    vars.ANYFLOW_BACKEND_URL = options.backendUrl || process.env.ANYFLOW_BACKEND_URL;
+    vars.ANYFLOW_BACKEND_URL = globalOptions.getOption('backendUrl') || process.env.ANYFLOW_BACKEND_URL;
   }
 
   if (process.env.ANYFLOW_FRONTEND_URL) {

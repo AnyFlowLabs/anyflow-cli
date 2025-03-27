@@ -6,6 +6,7 @@ import logger from '../utils/logger';
 import { getProjectRoot } from '../utils/getProjectRoot';
 
 import packageJson from '../../package.json';
+import { EXIT_CODE_GENERIC_ERROR } from '../utils/exitCodes';
 
 const name = packageJson.name;
 
@@ -15,14 +16,14 @@ const rl = readline.createInterface({
 });
 
 type HardhatConf = {
-    path: string,
-    type: string
+  path: string,
+  type: string
 }
 
 async function installAnyflowSdk(projectPath: string): Promise<void> {
   try {
     logger.info('Installing anyflow-sdk package...');
-    
+
     // Detect the package manager being used in the project
     let packageManager = 'npm';
     try {
@@ -38,19 +39,19 @@ async function installAnyflowSdk(projectPath: string): Promise<void> {
         // Default to npm
       }
     }
-    
+
     // Install the package with the appropriate package manager
     const installCmd = {
       'npm': 'npm install --save-dev anyflow-sdk',
       'yarn': 'yarn add --dev anyflow-sdk',
       'pnpm': 'pnpm add --save-dev anyflow-sdk'
     }[packageManager] as string;
-    
-    execSync(installCmd, { 
-      cwd: projectPath, 
-      stdio: 'inherit' 
+
+    execSync(installCmd, {
+      cwd: projectPath,
+      stdio: 'inherit'
     });
-    
+
     logger.success(`Successfully installed anyflow-sdk package using ${packageManager}`);
   } catch (error) {
     logger.error('Error installing anyflow-sdk package:', error instanceof Error ? error : undefined);
@@ -119,7 +120,7 @@ async function promptForConfigPath(): Promise<HardhatConf> {
 
         rl.close();
 
-        process.exit(1);
+        process.exit(EXIT_CODE_GENERIC_ERROR);
       }
 
       let fullPath = path.resolve(dir, answer);
@@ -181,9 +182,9 @@ function updateHardhatConfig(content: string, type: string): string {
         const nextSemicolon = content.indexOf(';', importEndIndex);
         if (nextSemicolon !== -1) {
           // Add the setup call after the last import statement
-          content = content.substring(0, nextSemicolon + 1) + 
-                  '\n\nanyflow.setup();' + 
-                  content.substring(nextSemicolon + 1);
+          content = content.substring(0, nextSemicolon + 1) +
+            '\n\nanyflow.setup();' +
+            content.substring(nextSemicolon + 1);
         } else {
           // If no semicolon found, add after requires
           const lastRequireIndex = findLastRequireStatement(content);
@@ -193,9 +194,9 @@ function updateHardhatConfig(content: string, type: string): string {
             // Add at the beginning, after our added import
             const firstNewline = content.indexOf('\n');
             if (firstNewline !== -1) {
-              content = content.substring(0, firstNewline + 1) + 
-                       '\nanyflow.setup();\n' + 
-                       content.substring(firstNewline + 1);
+              content = content.substring(0, firstNewline + 1) +
+                '\nanyflow.setup();\n' +
+                content.substring(firstNewline + 1);
             } else {
               content = `${content}\n\nanyflow.setup();\n`;
             }
@@ -210,9 +211,9 @@ function updateHardhatConfig(content: string, type: string): string {
           // No imports or requires found, add after our added import
           const firstNewline = content.indexOf('\n');
           if (firstNewline !== -1) {
-            content = content.substring(0, firstNewline + 1) + 
-                     '\nanyflow.setup();\n' + 
-                     content.substring(firstNewline + 1);
+            content = content.substring(0, firstNewline + 1) +
+              '\nanyflow.setup();\n' +
+              content.substring(firstNewline + 1);
           } else {
             content = `${content}\n\nanyflow.setup();\n`;
           }
@@ -227,9 +228,9 @@ function updateHardhatConfig(content: string, type: string): string {
         // No requires found, add after our added import
         const firstNewline = content.indexOf('\n');
         if (firstNewline !== -1) {
-          content = content.substring(0, firstNewline + 1) + 
-                   '\nanyflow.setup();\n' + 
-                   content.substring(firstNewline + 1);
+          content = content.substring(0, firstNewline + 1) +
+            '\nanyflow.setup();\n' +
+            content.substring(firstNewline + 1);
         } else {
           content = `${content}\n\nanyflow.setup();\n`;
         }
@@ -242,11 +243,11 @@ function updateHardhatConfig(content: string, type: string): string {
     // Find TypeScript-style export 
     const exportRegex = /export\s+default\s+([a-zA-Z0-9_]+);?/;
     const exportMatch = content.match(exportRegex);
-    
+
     if (exportMatch) {
       const configName = exportMatch[1];
       const originalExport = exportMatch[0];
-      
+
       // Replace the export statement
       const newExport = `export default anyflow.mergeHardhatConfig(${configName});`;
       content = content.replace(originalExport, newExport);
@@ -254,10 +255,10 @@ function updateHardhatConfig(content: string, type: string): string {
       // Find HardhatUserConfig object with any variable name
       const configRegex = /const\s+(\w+)\s*:\s*HardhatUserConfig\s*=\s*{[\s\S]*?};/;
       const match = content.match(configRegex);
-      
+
       if (match) {
         const configName = match[1];
-        
+
         // Add export statement at the end of the file
         content += `\nexport default anyflow.mergeHardhatConfig(${configName});\n`;
       } else {
@@ -269,11 +270,11 @@ function updateHardhatConfig(content: string, type: string): string {
     // Look for module.exports pattern
     const moduleExportsRegex = /module\.exports\s*=\s*({[\s\S]*?}|[a-zA-Z0-9_]+);?/;
     const moduleExportsMatch = content.match(moduleExportsRegex);
-    
+
     if (moduleExportsMatch) {
       const originalExport = moduleExportsMatch[0];
       const configValue = moduleExportsMatch[1];
-      
+
       // Replace the module.exports statement
       const newExport = `module.exports = anyflow.mergeHardhatConfig(${configValue});`;
       content = content.replace(originalExport, newExport);
@@ -281,10 +282,10 @@ function updateHardhatConfig(content: string, type: string): string {
       // Try to find a config object
       const configRegex = /const\s+(\w+)\s*=\s*{[\s\S]*?};/;
       const match = content.match(configRegex);
-      
+
       if (match) {
         const configName = match[1];
-        
+
         // Add module.exports statement at the end of the file if not present
         if (!content.includes('module.exports')) {
           content += `\nmodule.exports = anyflow.mergeHardhatConfig(${configName});\n`;
