@@ -1,5 +1,5 @@
 import { isAuthenticationRequired, requireAuthentication } from '../auth/store-token/store';
-import { writeChainDeploymentId, createDeployment } from './deployment';
+import { createDeployment } from './deployment';
 import { sendFile, zipFile } from './artifacts';
 import { runCommand } from './command';
 import axios from '../../utils/axios';
@@ -7,6 +7,7 @@ import { EventDispatcher } from '../../events/EventDispatcher';
 import { DeploymentScriptStartedEvent } from '../../events/DeploymentScriptStartedEvent';
 import { DeploymentScriptEndedEvent } from '../../events/DeploymentScriptEndedEvent';
 import logger from '../../utils/logger';
+import { getEnvVar } from '../../utils/env-manager';
 
 export async function deploy(
   network: string[],
@@ -16,6 +17,15 @@ export async function deploy(
 ) {
   if (!network || network.length < 1) {
     logger.error('Please specify a network using --networks');
+    process.exit(1);
+  }
+
+  // Check for required environment variables
+  const baseRpcUrl = getEnvVar('ANYFLOW_BASE_RPC_URL');
+  const frontendUrl = getEnvVar('ANYFLOW_FRONTEND_URL');
+
+  if (!baseRpcUrl || !frontendUrl) {
+    logger.error('Required environment variables are missing. Please run "anyflow init" first.');
     process.exit(1);
   }
 
@@ -43,7 +53,9 @@ export async function deploy(
     logger.success('Deployment created');
   }
 
-  logger.info(`Access your deployment information at: ${process.env.ANYFLOW_FRONTEND_URL}/deployments/${deployment.data.id}`);
+  logger.success('Deployment created');
+  logger.info(`Access your deployment information at: ${frontendUrl}/deployments/${deployment.data.id}`);
+  logger.info('Preparing artifacts for deployment...');
 
   // Artifacts are only sent if the deployment is new
   // When inside the runner, the CLI has already access to the artifacts
@@ -67,7 +79,6 @@ export async function deploy(
     }
 
     logger.info(`Starting deployment to chain ID ${chainDeployment.chain_id}...`);
-    await writeChainDeploymentId(chainDeployment.id);
 
     const command = 'npm';
     const args = ['run', 'deploy', '--', '--network', chainDeployment.chain_id.toString()];
@@ -77,7 +88,11 @@ export async function deploy(
     EventDispatcher.getInstance().dispatchEvent(new DeploymentScriptStartedEvent(chainDeployment.id, fullCommand));
 
     const start = performance.now();
-    const { exitCode, stdout, stderr } = await runCommand(command, args);
+    const { exitCode, stdout, stderr } = await runCommand(command, args, {
+      env: {
+        ANYFLOW_CHAIN_DEPLOYMENT_ID: chainDeployment.id.toString()
+      }
+    });
     const end = performance.now();
     const executionTime = Math.floor(end - start);
 
@@ -113,7 +128,7 @@ export async function deploy(
     logger.error(`Failed chains: ${failedChains.join(', ')}`);
   }
 
-  logger.info(`Access your deployment information at: ${process.env.ANYFLOW_FRONTEND_URL}/deployments/${deployment.data.id}`);
+  logger.info(`Access your deployment information at: ${frontendUrl}/deployments/${deployment.data.id}`);
 }
 
 function extractIds(deployment: any) {

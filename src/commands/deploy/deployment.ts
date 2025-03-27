@@ -4,6 +4,7 @@ import path from 'path';
 import { getProjectRoot } from '../../utils/getProjectRoot';
 import { aliasesToChainId, getChainAliases, isChainAvailable } from './chains';
 import axios from '../../utils/axios';
+import { updateEnvVar } from '../../utils/env-manager';
 
 type Chains = {
   chain_id: number
@@ -84,21 +85,4 @@ async function getNodeVersion() {
   const extractedVersion = versionMatch ? versionMatch[1] : defaultVersion;
 
   return allowedVersions.includes(extractedVersion) ? extractedVersion : defaultVersion;
-}
-
-export async function writeChainDeploymentId(id: string | number) {
-  const rootDir = await getProjectRoot();
-  const envPath = path.join(rootDir, '.env');
-  const envContent = fs.readFileSync(envPath, 'utf8');
-
-  const chainDeploymentIdLine = `ANYFLOW_CHAIN_DEPLOYMENT_ID=${id}`;
-
-  if (!envContent.includes('ANYFLOW_CHAIN_DEPLOYMENT_ID')) {
-    fs.appendFileSync(envPath, `\n${chainDeploymentIdLine}`);
-    console.log(`Added ANYFLOW_CHAIN_DEPLOYMENT_ID=${id} to existing .env file in the project root.`);
-  } else {
-    const updatedEnvContent = envContent.replace(/ANYFLOW_CHAIN_DEPLOYMENT_ID=.*/g, chainDeploymentIdLine);
-    fs.writeFileSync(envPath, updatedEnvContent);
-    console.log(`Overwritten ANYFLOW_CHAIN_DEPLOYMENT_ID=${id} in the .env file in the project root.`);
-  }
 }

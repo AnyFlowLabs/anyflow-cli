@@ -1,72 +1,48 @@
-import fs from 'fs';
-import path from 'path';
-
-import { getProjectRoot } from '../utils/getProjectRoot';
 import { getToken } from './auth/store-token/store';
 import logger from '../utils/logger';
+import { storeEnvVars } from '../utils/env-manager';
 
 export async function init(options: { baseRpcUrl?: string; backendUrl?: string } = {}) {
-  const rootDir = await getProjectRoot();
-  const envPath = path.join(rootDir, '.env');
-
   // TODO: ensure is hardhat project
-  await ensureEnvFile(envPath);
-
-  const envContent = fs.readFileSync(envPath, 'utf8');
-  // [TEMP] Disabling encryption for now [AF-281]
-  // await checkKey(envContent, envPath);
-  await checkEnvironmentVars(envContent, envPath, options);
-
-  logger.success('Created .env file with default configuration.');
+  await setupEnvironmentVars(options);
 }
 
-async function ensureEnvFile(envPath: string) {
-  if (!fs.existsSync(envPath)) {
-    fs.writeFileSync(envPath, '');
+async function setupEnvironmentVars(options: { baseRpcUrl?: string; backendUrl?: string } = {}) {
+  const token = await getToken();
+
+  // Create vars object from existing environment variables
+  const vars: Record<string, string> = {};
+
+  if (process.env.ANYFLOW_BASE_RPC_URL) {
+    vars.ANYFLOW_BASE_RPC_URL = options.baseRpcUrl || process.env.ANYFLOW_BASE_RPC_URL;
   }
-}
 
-async function checkEnvironmentVars(
-  envContent: string,
-  envPath: string,
-  options: { baseRpcUrl?: string; backendUrl?: string } = {}
-) {
-  const vars = {
-    ANYFLOW_BASE_RPC_URL: options.baseRpcUrl || process.env.ANYFLOW_BASE_RPC_URL,
-    ANYFLOW_BACKEND_URL: options.backendUrl || process.env.ANYFLOW_BACKEND_URL,
-    ANYFLOW_API_KEY: '',
-  };
+  if (process.env.ANYFLOW_BACKEND_URL) {
+    vars.ANYFLOW_BACKEND_URL = options.backendUrl || process.env.ANYFLOW_BACKEND_URL;
+  }
 
-  const token = await getToken()
+  if (process.env.ANYFLOW_FRONTEND_URL) {
+    vars.ANYFLOW_FRONTEND_URL = process.env.ANYFLOW_FRONTEND_URL;
+  }
 
+  // Only add token if it exists
   if (token) {
     vars.ANYFLOW_API_KEY = token;
   }
 
-  let updated = false;
-  for (const [key, value] of Object.entries(vars)) {
-    if (!envContent.includes(`${key}=`)) {
-      fs.appendFileSync(envPath, `\n${key}=${value}`);
-      updated = true;
-    } else {
-      envContent = envContent.replace(`${key}=${envContent.split(`${key}=`)[1].split('\n')[0]}`, `${key}=${value}`);
-      updated = true;
-    }
+  // Add debug flag if set
+  if (process.env.ANYFLOW_DEBUG) {
+    vars.ANYFLOW_DEBUG = process.env.ANYFLOW_DEBUG;
   }
 
-  if (updated) {
-    logger.info('Updated .env file with missing environment variables.', { envContent });
+  vars.HARDHAT_IGNITION_CONFIRM_DEPLOYMENT = process.env.HARDHAT_IGNITION_CONFIRM_DEPLOYMENT || 'false';
+  vars.HARDHAT_IGNITION_CONFIRM_RESET = process.env.HARDHAT_IGNITION_CONFIRM_RESET || 'false';
+
+  // Store variables in .anyflow/env.json
+  storeEnvVars(vars);
+
+  logger.success('Environment variables configured successfully.');
+  if (process.env.NODE_ENV) {
+    logger.info(`Environment: ${process.env.NODE_ENV}`);
   }
 }
-
-// async function checkKey(envContent: string, envPath: string) {
-//   if (envContent.includes('ANYFLOW_ENCRYPTION_KEY=')) {
-//     logger.warn('ANYFLOW_ENCRYPTION_KEY already exists in .env file.');
-//     return
-//   }
-
-//   const key = crypto.randomBytes(32).toString('hex');
-//   fs.appendFileSync(envPath, `\nANYFLOW_ENCRYPTION_KEY=${key}\n`);
-
-//   logger.info('Added ANYFLOW_ENCRYPTION_KEY to existing .env file in the project root.');
-// }

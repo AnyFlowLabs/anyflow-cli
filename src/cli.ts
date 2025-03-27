@@ -18,7 +18,23 @@ import { performFullVersionCheck } from './utils/version-checker';
 import { CliError, ErrorCode } from './errors/CliError';
 import logger from './utils/logger';
 import { validateEnv } from './utils/env-validator';
+import { loadEnvVars, getStoredEnvVars } from './utils/env-manager';
 // import { printHeader } from "./utils/header";
+
+// Load environment variables from .anyflow/env.json first
+loadEnvVars();
+
+// Initialize environment variables if not already set
+const storedVars = getStoredEnvVars();
+const missingEnvs = !storedVars.ANYFLOW_FRONTEND_URL || !storedVars.ANYFLOW_BACKEND_URL || !storedVars.ANYFLOW_BASE_RPC_URL;
+
+if (missingEnvs && process.argv.length > 2 && process.argv[2] !== 'init') {
+  logger.info('Environment variables missing. Running initialization...');
+  // Initialize environment variables without waiting
+  init().catch(error => {
+    logger.error('Error initializing environment variables:', error instanceof Error ? error : undefined);
+  });
+}
 
 // Initialize error tracking
 initBugsnag();

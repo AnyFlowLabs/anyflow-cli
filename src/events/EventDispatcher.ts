@@ -4,7 +4,7 @@ import { Mutex } from 'async-mutex';
 
 import { isAuthenticated } from '../commands/auth/store-token/store';
 import { BaseEvent } from './BaseEvent';
-import { toLower } from 'lodash';
+import { getEnvVar } from '../utils/env-manager';
 
 export class EventDispatcher {
   private static _instance: EventDispatcher;
@@ -39,9 +39,10 @@ export class EventDispatcher {
       return;
     }
 
-    // if (process.env.ANYFLOW_DEBUG) {
-    //     console.log("Dispatching event...", event);
-    // }
+    const debug = getEnvVar('ANYFLOW_DEBUG') === 'true';
+    if (debug) {
+      console.log("Dispatching event...", event);
+    }
 
     if (!await isAuthenticated()) {
       return;
@@ -53,12 +54,12 @@ export class EventDispatcher {
 
     await event.send()
       .then(() => {
-        // if (process.env.ANYFLOW_DEBUG) {
-        //     console.log("Event sent", event);
-        // }
+        if (debug) {
+          console.log("Event sent", event);
+        }
       })
       .catch((error) => {
-        if (toLower(process.env.ANYFLOW_DEBUG) === 'true') {
+        if (debug) {
           console.error('Failed to send event', event, {
             status: error.status,
             message: error.message,
@@ -86,7 +87,8 @@ export class EventDispatcher {
 
     while (this.pendingEvents.length > 0) {
       if (Date.now() - start > timeout) {
-        if (process.env.ANYFLOW_DEBUG) {
+        const debug = getEnvVar('ANYFLOW_DEBUG') === 'true';
+        if (debug) {
           throw new Error('Timed out waiting for all events to send.');
         } else {
           break;
