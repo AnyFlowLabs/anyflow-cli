@@ -2,6 +2,7 @@ import { memoize } from 'lodash';
 import { getUser } from '../api/user';
 import { updateEnvVar, getEnvVar } from '../../../utils/env-manager';
 import { EXIT_CODE_GENERIC_ERROR } from '../../../utils/exitCodes';
+import { globalOptions } from '../../../utils/globalOptions';
 
 // Store the token securely
 export async function storeToken(token: string) {
@@ -26,7 +27,7 @@ export const getToken = memoize(async function (): Promise<string | null> {
 });
 
 export async function isAuthenticated(): Promise<boolean> {
-  return (await getToken()) !== null;
+  return globalOptions.getOption('apiKey') !== null || (await getToken()) !== null;
 }
 
 export const getUserId = memoize(async function (): Promise<number> {

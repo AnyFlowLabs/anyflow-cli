@@ -8,6 +8,7 @@ import { getEnvVar } from '../utils/env-manager';
 import { globalOptions } from '../utils/globalOptions';
 import { options } from 'axios';
 import logger from '../utils/logger';
+import _ from 'lodash';
 
 export class EventDispatcher {
   private static _instance: EventDispatcher;
@@ -40,14 +41,16 @@ export class EventDispatcher {
      */
   public async dispatchEvent(event: BaseEvent): Promise<void> {
     if (this.skipEvents && !event.is_essential) {
+      logger.debug("Skipping event", event.event_id);
       return;
     }
 
     if (globalOptions.getOption('debug')) {
-      logger.debug("Dispatching event...", event);
+      logger.debug("Dispatching event...", _.omit(event, 'payload.stdout', 'payload.stderr'));
     }
 
     if (!await isAuthenticated()) {
+      logger.debug("Not authenticated, skipping event", event.event_id);
       return;
     }
 
@@ -58,7 +61,7 @@ export class EventDispatcher {
     await event.send()
       .then(() => {
         if (globalOptions.getOption('debug')) {
-          logger.debug("Event sent", event);
+          logger.debug("Event sent", event.event_id);
         }
       })
       .catch((error) => {

@@ -76,6 +76,7 @@ async function main() {
       .option('--debug', 'Enable debug mode')
       .option('--base-rpc-url <url>', 'Specify a custom base RPC URL')
       .option('--backend-url <url>', 'Specify a custom backend URL')
+      .option('--api-key <api-key>', 'Specify a custom API key')
       .description('The CLI for AnyFlow operations. Check https://docs.anyflow.pro/docs/anyflow_cli/ to learn more.')
       .hook('preAction', async (thisCommand, actionCommand) => {
         // Note: global options are only available after the preAction hook

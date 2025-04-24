@@ -5,6 +5,7 @@ import { getEnvVar } from './env-manager';
 import { globalOptions } from './globalOptions';
 import { EXIT_CODE_GENERIC_ERROR } from './exitCodes';
 import logger from './logger';
+import _ from 'lodash';
 
 const instance = axios.create({
   headers: {
@@ -15,7 +16,7 @@ const instance = axios.create({
 instance.interceptors.request.use(
   async (config) => {
     // Get the token from the system keychain
-    const token = await getToken();
+    const token = globalOptions.getOption('apiKey') || await getToken();
     config.baseURL = globalOptions.getOption('backendUrl') || getEnvVar('ANYFLOW_BACKEND_URL');
 
     if (token) {
@@ -38,7 +39,8 @@ instance.interceptors.request.use(
 instance.interceptors.response.use(
   (response) => {
     if (globalOptions.getOption('debug')) {
-      logger.debug(`HTTP Response: ${response.config.method?.toUpperCase()} ${response.config.url}`, response.data);
+      const responseData = _.omit(response.data, 'logs');
+      logger.debug(`HTTP Response: ${response.config.method?.toUpperCase()} ${response.config.url}`, responseData);
     }
 
     return response;

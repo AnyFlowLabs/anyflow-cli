@@ -7,6 +7,7 @@ interface GlobalOptions {
     baseRpcUrl?: string;
     backendUrl?: string;
     debug?: boolean;
+    apiKey?: string;
 }
 
 class GlobalOptionsManager extends EventEmitter {
@@ -14,6 +15,7 @@ class GlobalOptionsManager extends EventEmitter {
     private options: GlobalOptions = {
         skipEvents: false,
         skipVersionCheck: false,
+        apiKey: undefined,
     };
 
     private constructor() {

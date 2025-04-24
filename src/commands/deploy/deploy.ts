@@ -45,8 +45,9 @@ export async function deploy(
       const response = await axios.get(`api/deployments/${deploymentId}`);
       deployment = response.data;
 
-      if (deployment.status !== 'pending') {
-        logger.error(`Deployment with ID ${deploymentId} is not pending. Please create a new deployment instead by omitting the --deployment-id flag.`);
+      const acceptedStatuses = ['pending', 'processing', 'deploying'];
+      if (!acceptedStatuses.includes(deployment.status)) {
+        logger.error(`Deployment with ID ${deploymentId} is not pending, processing or deploying. Please create a new deployment instead by omitting the --deployment-id flag.`);
         process.exit(EXIT_CODE_GENERIC_ERROR);
       }
 
@@ -62,7 +63,6 @@ export async function deploy(
   }
 
   logger.info(`Access your deployment information at: ${frontendUrl}/deployments/${deployment.id}`);
-  logger.info('Preparing artifacts for deployment...');
 
   // Artifacts are only sent if the deployment is new
   // When inside the runner, the CLI has already access to the artifacts
@@ -97,7 +97,8 @@ export async function deploy(
     const start = performance.now();
     const { exitCode, stdout, stderr } = await runCommand(command, args, {
       env: {
-        ANYFLOW_CHAIN_DEPLOYMENT_ID: chainDeployment.id.toString()
+        ANYFLOW_CHAIN_DEPLOYMENT_ID: chainDeployment.id.toString(),
+        ANYFLOW_BASE_RPC_URL: baseRpcUrl,
       }
     });
     const end = performance.now();
@@ -130,9 +131,11 @@ export async function deploy(
     logger.warn('Deployment completed with errors:');
     logger.info(`Successful chains: ${successfulChains}`);
     logger.error(`Failed chains: ${failedChains.join(', ')}`);
+    process.exit(EXIT_CODE_GENERIC_ERROR);
   } else {
     logger.error('Deployment failed!');
     logger.error(`Failed chains: ${failedChains.join(', ')}`);
+    process.exit(EXIT_CODE_GENERIC_ERROR);
   }
 
   logger.info(`Access your deployment information at: ${frontendUrl}/deployments/${deployment.id}`);
