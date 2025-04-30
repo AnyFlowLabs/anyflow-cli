@@ -5,15 +5,21 @@ import { Mutex } from 'async-mutex';
 import { isAuthenticated } from '../commands/auth/store-token/store';
 import { BaseEvent } from './BaseEvent';
 import { getEnvVar } from '../utils/env-manager';
+import { globalOptions } from '../utils/globalOptions';
+import { options } from 'axios';
+import logger from '../utils/logger';
+import _ from 'lodash';
 
 export class EventDispatcher {
   private static _instance: EventDispatcher;
   private pendingEvents: BaseEvent[] = [];
   private mutex = new Mutex();
   private sessionId: string;
+  private skipEvents: boolean = false;
 
   private constructor() {
     this.sessionId = randomUUID();
+    this.skipEvents = globalOptions.getOption('skipEvents');
   }
 
   public static getInstance(): EventDispatcher {
@@ -23,6 +29,10 @@ export class EventDispatcher {
     return this._instance;
   }
 
+  public setSkipEvents(skip: boolean): void {
+    this.skipEvents = skip;
+  }
+
   /**
      * Dispatches an event without waiting for it to be sent.
      * Also does not break if the event fails to send.
@@ -30,12 +40,17 @@ export class EventDispatcher {
      * @param event 
      */
   public async dispatchEvent(event: BaseEvent): Promise<void> {
-    const debug = getEnvVar('ANYFLOW_DEBUG') === 'true';
-    if (debug) {
-      console.log("Dispatching event...", event);
+    if (this.skipEvents && !event.is_essential) {
+      logger.debug("Skipping event", event.event_id);
+      return;
+    }
+
+    if (globalOptions.getOption('debug')) {
+      logger.debug("Dispatching event...", _.omit(event, 'payload.stdout', 'payload.stderr'));
     }
 
     if (!await isAuthenticated()) {
+      logger.debug("Not authenticated, skipping event", event.event_id);
       return;
     }
 
@@ -45,12 +60,12 @@ export class EventDispatcher {
 
     await event.send()
       .then(() => {
-        if (debug) {
-          console.log("Event sent", event);
+        if (globalOptions.getOption('debug')) {
+          logger.debug("Event sent", event.event_id);
         }
       })
       .catch((error) => {
-        if (debug) {
+        if (globalOptions.getOption('debug')) {
           console.error('Failed to send event', event, {
             status: error.status,
             message: error.message,
@@ -73,15 +88,14 @@ export class EventDispatcher {
     const start = Date.now();
 
     if (this.pendingEvents.length > 0) {
-      console.log('Waiting for all events end...');
+      logger.info('Waiting for all events end...');
     }
 
     while (this.pendingEvents.length > 0) {
       if (Date.now() - start > timeout) {
-        const debug = getEnvVar('ANYFLOW_DEBUG') === 'true';
-        if (debug) {
+        if (globalOptions.getOption('debug')) {
           throw new Error('Timed out waiting for all events to send.');
-        } else{
+        } else {
           break;
         }
       }
@@ -90,3 +104,5 @@ export class EventDispatcher {
     }
   }
 }
+
+export const eventDispatcher = EventDispatcher.getInstance();

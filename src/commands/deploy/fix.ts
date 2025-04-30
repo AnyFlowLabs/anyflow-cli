@@ -34,6 +34,11 @@ export async function fix() {
 
   for (const deployment of failedDeployments) {
     try {
+      // Skip if chainDeploymentId is provided and doesn't match current chain deployment
+      // if (chainDeploymentId && chainDeployment.id.toString() !== chainDeploymentId) {
+      //   continue;
+      // }
+
       await updateChainDeploymentStatus(deployment.chainId, deployment.status);
       const data = fs.readFileSync(path, 'utf8');
       const updatedData = data.split('\n')

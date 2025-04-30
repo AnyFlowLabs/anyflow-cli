@@ -1,4 +1,5 @@
 import crypto from 'crypto';
+import { EXIT_CODE_GENERIC_ERROR } from '../../../utils/exitCodes';
 
 // [TEMP] Disabling encryption for now [AF-281]
 const ANYFLOW_ENCRYPTION_KEY = '123';
@@ -10,7 +11,7 @@ export function encrypt(text: string): string {
   // Check if encryption key is set
   if (!ANYFLOW_ENCRYPTION_KEY) {
     console.error('ANYFLOW_ENCRYPTION_KEY is not set in the environment variables, run `anyflow init` to set it up.');
-    process.exit(1);
+    process.exit(EXIT_CODE_GENERIC_ERROR);
   }
 
   const iv = crypto.randomBytes(16);
@@ -31,7 +32,7 @@ export function decrypt(text: string): string {
   // Check if encryption key is set
   if (!ANYFLOW_ENCRYPTION_KEY) {
     console.error('ANYFLOW_ENCRYPTION_KEY is not set in the environment variables, run `anyflow init` to set it up.');
-    process.exit(1);
+    process.exit(EXIT_CODE_GENERIC_ERROR);
   }
 
   const [ivHex, encryptedHex] = text.split(':');

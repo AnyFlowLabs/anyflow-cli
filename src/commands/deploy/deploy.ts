@@ -1,18 +1,24 @@
-import { requireAuthentication } from '../auth/store-token/store';
+import { isAuthenticationRequired, requireAuthentication } from '../auth/store-token/store';
 import { createDeployment } from './deployment';
 import { sendFile, zipFile } from './artifacts';
 import { runCommand } from './command';
 import axios from '../../utils/axios';
-import { EventDispatcher } from '../../events/EventDispatcher';
+import { eventDispatcher } from '../../events/EventDispatcher';
 import { DeploymentScriptStartedEvent } from '../../events/DeploymentScriptStartedEvent';
 import { DeploymentScriptEndedEvent } from '../../events/DeploymentScriptEndedEvent';
 import logger from '../../utils/logger';
 import { getEnvVar } from '../../utils/env-manager';
+import { EXIT_CODE_GENERIC_ERROR } from '../../utils/exitCodes';
 
-export async function deploy(network: string[], deterministicAddresses: boolean = false) {
+export async function deploy(
+  network: string[],
+  deterministicAddresses: boolean = false,
+  deploymentId?: string,
+  chainDeploymentId?: string
+) {
   if (!network || network.length < 1) {
     logger.error('Please specify a network using --networks');
-    process.exit(1);
+    process.exit(EXIT_CODE_GENERIC_ERROR);
   }
 
   // Check for required environment variables
@@ -21,27 +27,51 @@ export async function deploy(network: string[], deterministicAddresses: boolean 
 
   if (!baseRpcUrl || !frontendUrl) {
     logger.error('Required environment variables are missing. Please run "anyflow init" first.');
-    process.exit(1);
+    process.exit(EXIT_CODE_GENERIC_ERROR);
   }
 
-  // Check if we need authentication
-  if (!baseRpcUrl.includes('nest')) {
+  // When the CLI is used inside the Anyflow runner, authentication is handled by the runner
+  if (isAuthenticationRequired()) {
     await requireAuthentication();
   }
 
   // TODO: check if the user is inside a valid project
   // await requireProject();
 
-  logger.info('Creating deployment...');
+  let deployment;
+  if (deploymentId) {
+    logger.info('Using existing deployment...');
+    try {
+      const response = await axios.get(`api/deployments/${deploymentId}`);
+      deployment = response.data;
 
-  const deployment = await createDeployment(network, deterministicAddresses);
+      const acceptedStatuses = ['pending', 'processing', 'deploying'];
+      if (!acceptedStatuses.includes(deployment.status)) {
+        logger.error(`Deployment with ID ${deploymentId} is not pending, processing or deploying. Please create a new deployment instead by omitting the --deployment-id flag.`);
+        process.exit(EXIT_CODE_GENERIC_ERROR);
+      }
 
-  logger.success('Deployment created');
-  logger.info(`Access your deployment information at: ${frontendUrl}/deployments/${deployment.data.id}`);
-  logger.info('Preparing artifacts for deployment...');
+    } catch (error) {
+      logger.error(`Failed to fetch deployment with ID ${deploymentId}`);
+      process.exit(EXIT_CODE_GENERIC_ERROR);
+    }
+  } else {
+    logger.info('Creating deployment...');
+    const response = await createDeployment(network, deterministicAddresses);
+    deployment = response.data;
+    logger.success('Deployment created');
+  }
 
-  const zipFilePath = await zipFile();
-  await sendFile(zipFilePath, deployment.data.id);
+  logger.info(`Access your deployment information at: ${frontendUrl}/deployments/${deployment.id}`);
+
+  // Artifacts are only sent if the deployment is new
+  // When inside the runner, the CLI has already access to the artifacts
+  if (!deploymentId) {
+    logger.info('Preparing artifacts for deployment...');
+
+    const zipFilePath = await zipFile();
+    await sendFile(zipFilePath, deployment.id);
+  }
 
   const chainDeployments: { id: number, chain_id: number }[] = extractIds(deployment);
   const successfulChains: number[] = [];
@@ -50,6 +80,11 @@ export async function deploy(network: string[], deterministicAddresses: boolean 
   logger.heading('Deploying to chains...');
 
   for (const chainDeployment of chainDeployments) {
+    // Skip if chainDeploymentId is provided and doesn't match current chain deployment
+    if (chainDeploymentId && chainDeployment.id.toString() !== chainDeploymentId) {
+      continue;
+    }
+
     logger.info(`Starting deployment to chain ID ${chainDeployment.chain_id}...`);
 
     const command = 'npm';
@@ -57,18 +92,19 @@ export async function deploy(network: string[], deterministicAddresses: boolean 
     const fullCommand = `${command} ${args.join(' ')}`;
     logger.info(`Running command: ${fullCommand}`);
 
-    EventDispatcher.getInstance().dispatchEvent(new DeploymentScriptStartedEvent(chainDeployment.id, fullCommand));
+    eventDispatcher.dispatchEvent(new DeploymentScriptStartedEvent(chainDeployment.id, fullCommand));
 
     const start = performance.now();
     const { exitCode, stdout, stderr } = await runCommand(command, args, {
       env: {
-        ANYFLOW_CHAIN_DEPLOYMENT_ID: chainDeployment.id.toString()
+        ANYFLOW_CHAIN_DEPLOYMENT_ID: chainDeployment.id.toString(),
+        ANYFLOW_BASE_RPC_URL: baseRpcUrl,
       }
     });
     const end = performance.now();
     const executionTime = Math.floor(end - start);
 
-    EventDispatcher.getInstance().dispatchEvent(new DeploymentScriptEndedEvent(chainDeployment.id, exitCode, stdout, stderr, executionTime));
+    eventDispatcher.dispatchEvent(new DeploymentScriptEndedEvent(chainDeployment.id, exitCode, stdout, stderr, executionTime));
 
     if (exitCode != 0) {
       logger.error(`Deployment failed for chain ID ${chainDeployment.id} ❌`);
@@ -95,16 +131,18 @@ export async function deploy(network: string[], deterministicAddresses: boolean 
     logger.warn('Deployment completed with errors:');
     logger.info(`Successful chains: ${successfulChains}`);
     logger.error(`Failed chains: ${failedChains.join(', ')}`);
+    process.exit(EXIT_CODE_GENERIC_ERROR);
   } else {
     logger.error('Deployment failed!');
     logger.error(`Failed chains: ${failedChains.join(', ')}`);
+    process.exit(EXIT_CODE_GENERIC_ERROR);
   }
 
-  logger.info(`Access your deployment information at: ${frontendUrl}/deployments/${deployment.data.id}`);
+  logger.info(`Access your deployment information at: ${frontendUrl}/deployments/${deployment.id}`);
 }
 
 function extractIds(deployment: any) {
-  return deployment.data.chain_deployments.map((chains: any) => ({ id: chains.id, chain_id: chains.chain_id }));
+  return deployment.chain_deployments.map((chains: any) => ({ id: chains.id, chain_id: chains.chain_id }));
 }
 
 export async function updateChainDeploymentStatus(chainId: number, status: string) {

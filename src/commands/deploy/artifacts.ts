@@ -6,6 +6,7 @@ import AdmZip from 'adm-zip';
 
 import { getProjectRoot } from '../../utils/getProjectRoot';
 import axios from '../../utils/axios';
+import { EXIT_CODE_GENERIC_ERROR } from '../../utils/exitCodes';
 
 export async function sendFile(zipFilePath: string, id: number) {
   try {
@@ -28,7 +29,7 @@ export async function sendFile(zipFilePath: string, id: number) {
         console.log(err.status);
         console.log(err.message);
         console.log('Failed to upload artifacts');
-        process.exit(1);
+        process.exit(EXIT_CODE_GENERIC_ERROR);
       });
 
     // Clean up the zip file
@@ -44,7 +45,7 @@ export async function zipFile() {
   const artifactsFolderPath = path.join(projectRoute, 'artifacts');
   if (!fs.existsSync(artifactsFolderPath)) {
     console.error('Artifacts folder not found. Did you forget to compile the project?');
-    process.exit(1);
+    process.exit(EXIT_CODE_GENERIC_ERROR);
   }
 
   try {
@@ -61,6 +62,6 @@ export async function zipFile() {
     return zipFilePath;
   } catch (error: any) {
     console.error('Failed to zip file:', error.message);
-    process.exit(1);
+    process.exit(EXIT_CODE_GENERIC_ERROR);
   }
 }

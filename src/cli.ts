@@ -10,7 +10,7 @@ import { checkAuth } from './commands/auth/check-auth';
 import { logout } from './commands/logout';
 import { fix } from './commands/deploy/fix';
 import packageJson from '../package.json';
-import { EventDispatcher } from './events/EventDispatcher';
+import { eventDispatcher } from './events/EventDispatcher';
 import { ProgramStartedEvent } from './events/ProgramStartedEvent';
 import { ProgramEndedEvent } from './events/ProgramEndedEvent';
 import { initBugsnag } from './utils/bugsnag';
@@ -19,6 +19,8 @@ import { CliError, ErrorCode } from './errors/CliError';
 import logger from './utils/logger';
 import { validateEnv } from './utils/env-validator';
 import { loadEnvVars, getStoredEnvVars } from './utils/env-manager';
+import { globalOptions } from './utils/globalOptions';
+import { EXIT_CODE_GENERIC_ERROR, EXIT_CODE_SUCCESS } from './utils/exitCodes';
 // import { printHeader } from "./utils/header";
 
 // Load environment variables from .anyflow/env.json first
@@ -64,22 +66,44 @@ async function main() {
   try {
     const version = packageJson.version;
     logger.heading(`AnyFlow CLI v${version}`);
-    
-    EventDispatcher.getInstance().dispatchEvent(new ProgramStartedEvent(process.argv.slice(2).join(' ')));
-
-    await performFullVersionCheck();
 
     const program = new Command();
 
     program
       .name('anyflow')
+      .option('--skip-events', 'Skip sending telemetry events')
+      .option('--skip-version-check', 'Skip version check')
+      .option('--debug', 'Enable debug mode')
+      .option('--base-rpc-url <url>', 'Specify a custom base RPC URL')
+      .option('--backend-url <url>', 'Specify a custom backend URL')
+      .option('--api-key <api-key>', 'Specify a custom API key')
       .description('The CLI for AnyFlow operations. Check https://docs.anyflow.pro/docs/anyflow_cli/ to learn more.')
+      .hook('preAction', async (thisCommand, actionCommand) => {
+        // Note: global options are only available after the preAction hook
+
+        // Set global options from program options
+        globalOptions.setOptions(thisCommand.opts());
+
+        eventDispatcher.dispatchEvent(new ProgramStartedEvent(process.argv.slice(2).join(' ')));
+
+        if (thisCommand.opts().debug) {
+          logger.debug('Debug mode enabled');
+          logger.debug('Starting CLI with options:', thisCommand.opts());
+          logger.debug(`About to call action handler for subcommand: ${actionCommand.name()}`);
+          logger.debug('arguments: %O', actionCommand.args);
+          logger.debug('options: %o', actionCommand.opts());
+        }
+
+        if (!globalOptions.getOption('skipVersionCheck')) {
+          await performFullVersionCheck();
+        }
+      })
       .version(version);
 
     program
       .command('init')
       .description('Initialize the AnyFlow CLI')
-      .action(init)
+      .action(() => init())
       .hook('postAction', exitHandler);
 
     program
@@ -98,13 +122,17 @@ async function main() {
       .command('deploy')
       .description('Deploy the project by calling authenticated backend routes')
       .option('--networks <network...>', 'Specify the network(s) to deploy to')
-      .option('--deterministic-addresses', 'Use deterministic addresses for deployment')
-      .option('-da', 'Use deterministic addresses for deployment')
+      .option('-da, --deterministic-addresses', 'Use deterministic addresses for deployment')
+      .option('--deployment-id <deployment-id>', 'Specify the deployment ID (when it already exists)')
+      .option('--chain-deployment-id <chain-deployment-id>', 'Specify the chain deployment ID (when it already exists)')
       .action((options) => {
-        logger.info('Parsed networks: ' + JSON.stringify(options.networks));
         const da = options.deterministicAddresses || options.da || false;
-        logger.info('Deterministic addresses option: ' + da);
-        return deploy(options.networks, da);
+        return deploy(
+          options.networks,
+          da,
+          options.deploymentId,
+          options.chainDeploymentId
+        );
       })
       .hook('postAction', exitHandler);
 
@@ -135,7 +163,7 @@ async function main() {
 
     await program.parseAsync(process.argv);
   } catch (error: unknown) {
-    EventDispatcher.getInstance().dispatchEvent(new ProgramEndedEvent(
+    eventDispatcher.dispatchEvent(new ProgramEndedEvent(
       1, executionTime()
     ));
 
@@ -154,27 +182,27 @@ async function main() {
         { originalError: error }
       );
     }
-    
-    process.exit(1);
+
+    process.exit(EXIT_CODE_GENERIC_ERROR);
   }
 }
 
 async function exitHandler(_: Command, actionCommand: Command) {
   // Perform any cleanup or final logging here
   const elapsedTime = executionTime();
-  EventDispatcher.getInstance().dispatchEvent(new ProgramEndedEvent(
+  eventDispatcher.dispatchEvent(new ProgramEndedEvent(
     0, elapsedTime
   ));
-  await EventDispatcher.getInstance().waitForAllEvents();
+  await eventDispatcher.waitForAllEvents();
 
   logger.info('Exiting...');
 }
 
 main()
   .then(() => {
-    process.exit(0);
+    process.exit(EXIT_CODE_SUCCESS);
   })
   .catch((error) => {
     logger.error('Exited with error:', error instanceof Error ? error : undefined);
-    process.exit(1);
+    process.exit(EXIT_CODE_GENERIC_ERROR);
   });
