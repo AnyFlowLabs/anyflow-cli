@@ -1,10 +1,11 @@
 {
   "name": "anyflow-cli",
   "description": "CLI for AnyFlow operations",
-  "version": "1.1.0",
+  "version": "1.1.1",
   "main": "dist/cli.js",
   "bin": {
-    "anyflow": "dist/cli.js"
+    "anyflow": "dist/cli.js",
+    "anyflow-dev": "dist/cli.js"
   },
   "engines": {
     "node": "^20"

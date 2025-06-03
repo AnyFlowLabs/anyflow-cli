@@ -27,7 +27,7 @@ export const getToken = memoize(async function (): Promise<string | null> {
 });
 
 export async function isAuthenticated(): Promise<boolean> {
-  return globalOptions.getOption('apiKey') !== null || (await getToken()) !== null;
+  return !!globalOptions.getOption('apiKey') || !!(await getToken());
 }
 
 export const getUserId = memoize(async function (): Promise<number> {
