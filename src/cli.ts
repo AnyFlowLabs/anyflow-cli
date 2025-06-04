@@ -9,6 +9,7 @@ import { deploy } from './commands/deploy/deploy';
 import { checkAuth } from './commands/auth/check-auth';
 import { logout } from './commands/logout';
 import { fix } from './commands/deploy/fix';
+import { listNetworks } from './commands/networks';
 import packageJson from '../package.json';
 import { eventDispatcher } from './events/EventDispatcher';
 import { ProgramStartedEvent } from './events/ProgramStartedEvent';
@@ -152,6 +153,12 @@ async function main() {
       .command('fix')
       .description('Fix failed deployments')
       .action(fix)
+      .hook('postAction', exitHandler);
+
+    program
+      .command('networks')
+      .description('List all available networks')
+      .action(listNetworks)
       .hook('postAction', exitHandler);
 
     program
