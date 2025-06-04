@@ -9,6 +9,7 @@ import { DeploymentScriptEndedEvent } from '../../events/DeploymentScriptEndedEv
 import logger from '../../utils/logger';
 import { getEnvVar } from '../../utils/env-manager';
 import { EXIT_CODE_GENERIC_ERROR } from '../../utils/exitCodes';
+import { isAnyflowSdkSetupCorrectly } from '../install';
 
 export async function deploy(
   network: string[],
@@ -27,6 +28,13 @@ export async function deploy(
 
   if (!baseRpcUrl || !frontendUrl) {
     logger.error('Required environment variables are missing. Please run "anyflow init" first.');
+    process.exit(EXIT_CODE_GENERIC_ERROR);
+  }
+
+  // Check if Anyflow SDK is properly installed and configured
+  const sdkSetupCorrectly = await isAnyflowSdkSetupCorrectly();
+  if (!sdkSetupCorrectly) {
+    logger.error("Anyflow SDK is not properly installed or configured. Please run 'anyflow install' to set it up, or ensure your hardhat.config file is correctly modified and anyflow-sdk is in your project's dependencies.");
     process.exit(EXIT_CODE_GENERIC_ERROR);
   }
 

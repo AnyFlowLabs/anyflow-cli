@@ -15,7 +15,7 @@ const rl = readline.createInterface({
   output: process.stdout
 });
 
-type HardhatConf = {
+export type HardhatConf = {
   path: string,
   type: string
 }
@@ -91,7 +91,7 @@ export async function install() {
   logger.info('You can now use Anyflow in your project!');
 }
 
-async function findHardhatConfig(dir = process.cwd()): Promise<{ path: string; type: string }> {
+export async function findHardhatConfig(dir = process.cwd()): Promise<HardhatConf> {
   const files = await fs.readdir(dir);
   const configFile = files.find(file => file === 'hardhat.config.ts' || file === 'hardhat.config.js');
 
@@ -110,7 +110,7 @@ async function findHardhatConfig(dir = process.cwd()): Promise<{ path: string; t
   return findHardhatConfig(parentDir);
 }
 
-async function promptForConfigPath(): Promise<HardhatConf> {
+export async function promptForConfigPath(): Promise<HardhatConf> {
   return new Promise(async (resolve) => {
     rl.question('Please enter the path to your hardhat.config.ts(js) file: ', async (answer) => {
       const dir = await getProjectRoot();
@@ -323,4 +323,64 @@ function insertAfterPosition(content: string, position: number, newContent: stri
   } else {
     return content + newContent;
   }
+}
+
+export function checkHardhatConfigContent(content: string): { sdkImported: boolean, setupCalled: boolean, configMerged: boolean } {
+  const sdkImported = content.includes('anyflow-sdk'); // Covers import and require
+  const setupCalled = content.includes('anyflow.setup()');
+  const configMerged = content.includes('anyflow.mergeHardhatConfig(');
+
+  return { sdkImported, setupCalled, configMerged };
+}
+
+export async function isAnyflowSdkSetupCorrectly(): Promise<boolean> {
+  const hardhatConfigResult = await findHardhatConfig();
+
+  if (!hardhatConfigResult || !hardhatConfigResult.path) {
+    // findHardhatConfig already logs a warning if it cannot find the file.
+    // This indicates a core part of the setup is missing.
+    return false;
+  }
+
+  const projectDir = path.dirname(hardhatConfigResult.path);
+
+  // 1. Check package.json for anyflow-sdk
+  try {
+    const packageJsonPath = path.join(projectDir, 'package.json');
+    const packageJsonContent = await fs.readFile(packageJsonPath, 'utf-8');
+    const packageJsonData = JSON.parse(packageJsonContent);
+    const dependencies = packageJsonData.dependencies || {};
+    const devDependencies = packageJsonData.devDependencies || {};
+    if (!dependencies['anyflow-sdk'] && !devDependencies['anyflow-sdk']) {
+      logger.debug('anyflow-sdk not found in package.json dependencies or devDependencies.');
+      return false;
+    }
+  } catch (error) {
+    logger.debug('Failed to read or parse package.json:', error instanceof Error ? error.message : error);
+    return false; // package.json is missing or unreadable
+  }
+
+  // 2. Check Hardhat config content
+  try {
+    const configContent = await fs.readFile(hardhatConfigResult.path, 'utf-8');
+    const { sdkImported, setupCalled, configMerged } = checkHardhatConfigContent(configContent);
+
+    if (!sdkImported) {
+      logger.debug('anyflow-sdk import not found in Hardhat config. Run');
+      return false;
+    }
+    if (!setupCalled) {
+      logger.debug('anyflow.setup() call not found in Hardhat config.');
+      return false;
+    }
+    if (!configMerged) {
+      logger.debug('anyflow.mergeHardhatConfig() usage not found in Hardhat config.');
+      return false;
+    }
+  } catch (error) {
+    logger.debug(`Failed to read Hardhat config file (${hardhatConfigResult.path}):`, error instanceof Error ? error.message : error);
+    return false; // Hardhat config is unreadable
+  }
+
+  return true;
 }
